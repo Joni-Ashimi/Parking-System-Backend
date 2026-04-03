@@ -4,13 +4,13 @@ import {
     PrimaryGeneratedColumn,
     OneToMany,
 } from 'typeorm';
-import {UserType} from "../def/UserType";
 import {Vehicle} from "./Vehicle";
+import {UserType} from "../def/enums/UserType";
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Column({
         type: 'enum',
@@ -19,8 +19,20 @@ export class User {
     })
     type: UserType;
 
-    @Column({ nullable: true }) // guests dont need email
+    @Column()
+    name: string;
+
+    @Column({ nullable: true })
     email: string;
+
+    @Column()
+    password: string;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @DeleteDateColumn()
+    deletedAt?: Date;
 
     @Column({ default: false })
     isBanned: boolean;
