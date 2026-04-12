@@ -5,13 +5,14 @@ import {
 } from 'typeorm';
 import {Vehicle} from "./Vehicle";
 import {ParkingSpot} from "./ParkingSpot";
-import {ParkingSessionStatus} from "../def/ParkingSessionStatus";
+import {ParkingSessionStatus} from "../def/enums/ParkingSessionStatus";
 import {Transaction} from "./Transaction";
+import {User} from "./User";
 
 @Entity()
 export class ParkingSession {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @ManyToOne(() => Vehicle, { eager: true })
   vehicle: Vehicle;
@@ -27,7 +28,7 @@ export class ParkingSession {
 
   @Column({
     type: 'enum',
-    enum: ParkingSessionStatus,
+      enum: ParkingSessionStatus,
     default: ParkingSessionStatus.ACTIVE,
   })
   status: ParkingSessionStatus;
@@ -37,6 +38,9 @@ export class ParkingSession {
 
   @OneToOne(() => Transaction, (t) => t.parkingSession)
   transaction: Transaction;
+
+  @ManyToOne(() => User)
+  user: User;
 
   @CreateDateColumn()
   createdAt: Date;
