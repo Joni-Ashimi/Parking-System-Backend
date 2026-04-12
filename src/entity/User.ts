@@ -2,7 +2,7 @@ import {
     Entity,
     Column,
     PrimaryGeneratedColumn,
-    OneToMany,
+    OneToMany, CreateDateColumn, DeleteDateColumn,
 } from 'typeorm';
 import {Vehicle} from "./Vehicle";
 import {UserType} from "../def/enums/UserType";

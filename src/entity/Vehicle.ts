@@ -1,18 +1,13 @@
-import {
-    Entity,
-    Column,
-    PrimaryGeneratedColumn,
-    ManyToOne,
-} from 'typeorm';
+import {Column, Entity, ManyToOne, PrimaryGeneratedColumn,} from 'typeorm';
 import {User} from "./User";
-import {VehicleType} from "../def/VehicleType";
+import {VehicleType} from "./../def/enums/VehicleType";
 
 @Entity()
-export class Vehicle{
-    @PrimaryGeneratedColumn()
-    id: number
+export class Vehicle {
+    @PrimaryGeneratedColumn('uuid')
+    id: string
 
-    @Column({ unique: true })
+    @Column({unique: true})
     plateNumber: string;
 
     @Column({

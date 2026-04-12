@@ -3,25 +3,26 @@ import {
     PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
-    DeleteDateColumn,
+    DeleteDateColumn, OneToMany,
 } from 'typeorm';
+import {ParkingSpot} from "./ParkingSpot";
 
-@Entity('notifications')
-export class Notification {
+@Entity('parkingLot')
+export class ParkingLot {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column()
-    userId: string;
+    name: string;
 
     @Column()
-    auctionId: string;
+    location: string;
 
     @Column()
-    message: string;
+    totalSpots: number;
 
-    @Column({ default: false })
-    isRead: boolean;
+    @OneToMany(() => ParkingSpot, (spot) => spot.lot)
+    spots: ParkingSpot[];
 
     @CreateDateColumn()
     createdAt: Date;
