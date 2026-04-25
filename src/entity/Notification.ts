@@ -3,21 +3,19 @@ import {
     PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
-    DeleteDateColumn, ManyToOne,
+    DeleteDateColumn,
 } from 'typeorm';
-import {User} from "./User";
-import {ParkingSession} from "./ParkingSession";
 
 @Entity('notifications')
 export class Notification {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ManyToOne(() => User)
-    user: User;
+    @Column()
+    userId: string;
 
-    @ManyToOne(() => ParkingSession)
-    parkingSession: ParkingSession;
+    @Column()
+    auctionId: string;
 
     @Column()
     message: string;
