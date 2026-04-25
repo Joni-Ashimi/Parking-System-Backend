@@ -1,4 +1,4 @@
-import {Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn,} from 'typeorm';
+import {Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn,} from 'typeorm';
 import {ParkingSpotStatus} from "../def/enums/ParkingSpotStatus";
 import {ParkingSession} from "./ParkingSession";
 import {ParkingLot} from "./ParkingLot";
@@ -14,9 +14,6 @@ export class ParkingSpot {
     @Column()
     floor: number;
 
-    @Column({default: false})
-    isOccupied: boolean;
-
     @Column({
         type: 'enum',
         enum: ParkingSpotStatus,
@@ -26,7 +23,7 @@ export class ParkingSpot {
     @CreateDateColumn()
     createdAt: Date;
 
-    @ManyToOne(() => ParkingSpot, (spot) => spot.sessions)
+    @OneToMany(() => ParkingSession, (session) => session.spot)
     sessions: ParkingSession[];
 
     @ManyToOne(() => ParkingLot, (parkingLot) => parkingLot.spots)

@@ -6,6 +6,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { CONFIG } from './dynamic-module/config';
 import { DB } from './dynamic-module/db';
 import {UsersModule} from "./users/users.module";
+import { ParkingSpotModule } from './parking-spots/ParkingSpot.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import {UsersModule} from "./users/users.module";
     DB,
     UsersModule,
     AuthModule,
+    ParkingSpotModule,
   ],
   controllers: [AppController],
   providers: [AppService],
