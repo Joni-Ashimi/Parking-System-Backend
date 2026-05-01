@@ -21,7 +21,8 @@
     "migration:create": "npm run typeorm -- migration:create",
     "migration:generate": "ts-node --transpile-only ./node_modules/typeorm/cli.js -d src/datasource.ts migration:generate",
     "migration:run": "ts-node --transpile-only ./node_modules/typeorm/cli.js -d src/datasource.ts migration:run",
-    "migration:revert": "ts-node --transpile-only ./node_modules/typeorm/cli.js -d src/datasource.ts migration:revert"
+    "migration:revert": "ts-node --transpile-only ./node_modules/typeorm/cli.js -d src/datasource.ts migration:revert",
+    "seed": "ts-node -r tsconfig-paths/register src/seed/index.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
