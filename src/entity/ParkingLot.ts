@@ -19,7 +19,7 @@ export class ParkingLot {
     location: string;
 
     @Column()
-    totalSpots: number;
+    capacity: number;
 
     @OneToMany(() => ParkingSpot, (spot) => spot.lot)
     spots: ParkingSpot[];

@@ -16,6 +16,9 @@ export class Vehicle {
     })
     type: VehicleType;
 
+    @Column({default: true})
+    defaultVehicle: boolean;
+
     @ManyToOne(() => User, (user) => user.vehicles)//many vehicle by one user
     user: User;
 }

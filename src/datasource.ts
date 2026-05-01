@@ -6,6 +6,7 @@ import {ParkingSession} from "./entity/ParkingSession";
 import {ParkingSpot} from "./entity/ParkingSpot";
 import {User} from "./entity/User";
 import {Vehicle} from "./entity/Vehicle";
+import {Notification} from "./entity/Notification";
 
 dotenv.config();
 

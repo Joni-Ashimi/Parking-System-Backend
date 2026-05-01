@@ -1,5 +1,5 @@
 import { IsEnum, IsInt, IsString, Min } from 'class-validator';
-import { ParkingSpotStatus } from '../../def/enums/ParkingSpotStatus';
+import {ParkingSpotStatus} from "../../enums/ParkingSpotStatus";
 
 export class CreateParkingSpotDto {
     @IsString()
