@@ -1,25 +1,25 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Patch,
-    Param,
-    Delete,
-    Query,
-    UseGuards,
-} from '@nestjs/common';
-import { UsersService } from './users.service';
-import { type PaginationQuery } from 'src/def/pagination-query';
+import {Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards,} from '@nestjs/common';
+import {UsersService} from './users.service';
+import {type PaginationQuery} from 'src/def/pagination-query';
 import {JwtAuthGuard} from "../auth/guard/jwt-auth.guard";
-import { ValidationPipe } from 'src/pipes/joi-validator.pipe';
+import {ValidationPipe} from 'src/pipes/joi-validator.pipe';
 import Joi from "joi";
-import type {CreateUser} from "../def/types/create-user.type";
-import type {UpdateUser} from "../def/types/update-user.type";
+import {CurrentLoggedInUser} from "../decorator/current-user.decorator";
+import {CreateUserDto} from "../def/dto/user/CreateUserDto";
+import {UpdateUserDto} from "../def/dto/user/UpdateUserDto";
+
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
+    constructor(
+        private readonly usersService: UsersService
+    ) {
+    }
+
+    @Get('/me')
+    getMe(@CurrentLoggedInUser() user: { id: string }) {
+        return this.usersService.findOne(user.id);
+    }
 
     @Post()
     @UseGuards()
@@ -34,7 +34,7 @@ export class UsersController {
                 }),
             ),
         )
-        createUser: CreateUser,
+        createUser: CreateUserDto,
     ) {
         return this.usersService.create(createUser);
     }
@@ -60,26 +60,16 @@ export class UsersController {
         return this.usersService.findOne(id);
     }
 
-    @Patch(':id')
+    @Patch('/me')
     update(
-        @Param('id') id: string,
-        @Body(
-            ValidationPipe.from(
-                Joi.object({
-                    name: Joi.string().required(),
-                    email: Joi.string().email().required(),
-                    password: Joi.string().required().min(8),
-                    confirmPassword: Joi.string().required().min(8),
-                }),
-            ),
-        )
-        updateUser: UpdateUser,
+        @CurrentLoggedInUser() user: { id: string },
+        @Body() dto: UpdateUserDto,
     ) {
-        return this.usersService.update(id, updateUser);
+        return this.usersService.partialUpdate(user.id, dto);
     }
 
-    @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.usersService.delete(id);
+    @Delete('/me')
+    remove(@CurrentLoggedInUser() user: { id: string }) {
+        return this.usersService.delete(user.id);
     }
 }

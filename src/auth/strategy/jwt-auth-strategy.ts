@@ -25,6 +25,9 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt-auth') {
         if (!user) {
             throw new UnauthorizedException();
         }
+        if (user.tokenVersion !== payload.tokenVersion) {
+            throw new UnauthorizedException('Token expired');
+        }
         return user;
     }
 

@@ -1,4 +1,12 @@
-import {Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn,} from 'typeorm';
+import {
+    Column,
+    CreateDateColumn, DeleteDateColumn,
+    Entity,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from 'typeorm';
 import {ParkingSpotStatus} from "../def/enums/ParkingSpotStatus";
 import {ParkingSession} from "./ParkingSession";
 import {ParkingLot} from "./ParkingLot";
@@ -22,6 +30,12 @@ export class ParkingSpot {
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
+
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     @OneToMany(() => ParkingSession, (session) => session.spot)
     sessions: ParkingSession[];

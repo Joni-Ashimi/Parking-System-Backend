@@ -1,4 +1,12 @@
-import {Column, Entity, ManyToOne, PrimaryGeneratedColumn,} from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from 'typeorm';
 import {User} from "./User";
 import {VehicleType} from "./../def/enums/VehicleType";
 
@@ -17,8 +25,17 @@ export class Vehicle {
     type: VehicleType;
 
     @Column({default: true})
-    defaultVehicle: boolean;
+    isDefault: boolean;
 
     @ManyToOne(() => User, (user) => user.vehicles)//many vehicle by one user
     user: User;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
+
+    @DeleteDateColumn()
+    deletedAt?: Date;
 }

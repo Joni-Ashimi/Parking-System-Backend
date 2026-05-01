@@ -3,7 +3,7 @@ import {
     PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
-    DeleteDateColumn, OneToMany,
+    DeleteDateColumn, OneToMany, UpdateDateColumn,
 } from 'typeorm';
 import {ParkingSpot} from "./ParkingSpot";
 
@@ -26,6 +26,9 @@ export class ParkingLot {
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 
     @DeleteDateColumn()
     deletedAt?: Date;

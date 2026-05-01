@@ -4,8 +4,8 @@ import {Repository} from 'typeorm';
 import {ParkingSpotStatus} from '../def/enums/ParkingSpotStatus';
 import {ParkingSpot} from "../entity/ParkingSpot";
 import {ParkingLot} from "../entity/ParkingLot";
-import {CreateParkingSpotDto} from "../def/dto/parkingSpot/create-parking-spot.dto";
-import {UpdateParkingSpotDto} from "../def/dto/parkingSpot/update-parking-spot.dto";
+import {CreateParkingSpotDto} from "../def/dto/parkingSpot/CreateParkingSpotDto";
+import {UpdateParkingSpotDto} from "../def/dto/parkingSpot/UpdateParkingSpotDto";
 
 @Injectable()
 export class ParkingSpotService {

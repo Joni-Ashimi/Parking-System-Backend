@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import {BadRequestException, Injectable} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
 import {User} from "../entity/User";
 import {PaginationQuery} from "../def/pagination-query";
-import {CreateUser} from "../def/types/create-user.type";
-import {UpdateUser} from "../def/types/update-user.type";
+import {CreateUserDto} from "../def/dto/user/CreateUserDto";
+import {UpdateUserDto} from "../def/dto/user/UpdateUserDto";
 
 @Injectable()
 export class UsersService {
@@ -20,7 +20,7 @@ export class UsersService {
         return user;
     }
 
-    async create(createUser: CreateUser): Promise<User> {
+    async create(createUser: CreateUserDto): Promise<User> {
         const user = this.usersRepository.create({
             ...createUser,
         });
@@ -48,8 +48,13 @@ export class UsersService {
         return user;
     }
 
-    async update(id: string, updateUser: UpdateUser): Promise<User> {
+    async partialUpdate(id: string, updateUser: UpdateUserDto): Promise<User> {
         const user = await this.getUser(id);
+        if (updateUser.email && updateUser.email !== user.email) {
+            const exists = await this.usersRepository.findOneBy({ email: updateUser.email });
+            if (exists) throw new BadRequestException('Email already in use');
+        }
+
         const updatedUser = this.usersRepository.merge(user, updateUser);
         return this.usersRepository.save(updatedUser);
     }
@@ -69,5 +74,26 @@ export class UsersService {
             skip: (page - 1) * pageSize,
             order: { name: 'ASC' },
         });
+    }
+
+    async updatePassword(userId: string, hashedPassword: string) {
+        await this.usersRepository.update(
+            { id: userId },
+            { password: hashedPassword },
+        );
+
+        await this.usersRepository.increment(
+            { id: userId },
+            'tokenVersion',
+            1,
+        );
+    }
+
+    async incrementTokenVersion(userId: string) {
+        await this.usersRepository.increment(
+            { id: userId },
+            'tokenVersion',
+            1,
+        );
     }
 }

@@ -8,14 +8,16 @@ import {UsersModule} from "../users/users.module";
 import {JwtAuthStrategy} from "./strategy/jwt-auth-strategy";
 import {PassportModule} from '@nestjs/passport';
 import {JWT} from "../dynamic-module/jwt";
+import {EmailModule} from "../email/email.module";
+import {PasswordReset} from "../entity/PasswordReset";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User]), UsersModule, JWT,
+    imports: [TypeOrmModule.forFeature([User, PasswordReset]), UsersModule, JWT, EmailModule,
         PassportModule.register({defaultStrategy: 'jwt-auth'}),
     ],
-    providers: [AuthService, JwtAuthGuard, JwtAuthStrategy],
+    providers: [AuthService, JwtAuthStrategy],
     controllers: [AuthController],
-    exports: [AuthService, JwtAuthGuard],
+    exports: [AuthService],
 })
 export class AuthModule {
 }

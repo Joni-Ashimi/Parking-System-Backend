@@ -9,6 +9,8 @@ import {UsersModule} from "./users/users.module";
 import {ParkingSpotModule} from './parkingSpot/ParkingSpot.module';
 import {ParkingLotModule} from "./parkingLot/parkingLot.module";
 import {VehiclesModule} from "./vehicles/vehicles.module";
+import {RedisModule} from "./redis/redis.module";
+import {EmailModule} from "./email/email.module";
 
 @Module({
     imports: [
@@ -19,7 +21,9 @@ import {VehiclesModule} from "./vehicles/vehicles.module";
         AuthModule,
         ParkingSpotModule,
         ParkingLotModule,
-        VehiclesModule
+        VehiclesModule,
+        RedisModule,
+        EmailModule,
     ],
     controllers: [AppController],
     providers: [AppService],

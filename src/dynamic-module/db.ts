@@ -10,7 +10,7 @@ export const DB = TypeOrmModule.forRoot({
     database: process.env.DB_NAME,
     entities: [__dirname + '/../entity/*{.ts,.js}'],
     migrations: [join(__dirname, '../**/migrations/*{.ts,.js}')],
-    synchronize: true, // for dev purpose
+    synchronize: true,
 });
 
 console.log({

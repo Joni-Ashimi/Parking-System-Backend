@@ -1,7 +1,7 @@
 import {
   Entity,
   PrimaryGeneratedColumn,
-  Column, ManyToOne, OneToOne, CreateDateColumn
+  Column, ManyToOne, OneToOne, CreateDateColumn, DeleteDateColumn
 } from 'typeorm';
 import {Vehicle} from "./Vehicle";
 import {ParkingSpot} from "./ParkingSpot";
@@ -44,4 +44,7 @@ export class ParkingSession {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }

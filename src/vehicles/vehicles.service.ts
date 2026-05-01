@@ -1,10 +1,6 @@
-import {
-    Injectable,
-    NotFoundException,
-    ConflictException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import {ConflictException, Injectable, NotFoundException,} from '@nestjs/common';
+import {InjectRepository} from '@nestjs/typeorm';
+import {IsNull, Repository} from 'typeorm';
 import {Vehicle} from "../entity/Vehicle";
 import {User} from "../entity/User";
 import {CreateVehicleDto} from "../def/dto/vehicles/CreateVehicleDto";
@@ -16,20 +12,20 @@ export class VehicleService {
     constructor(
         @InjectRepository(Vehicle)
         private readonly vehicleRepo: Repository<Vehicle>,
-
         @InjectRepository(User)
         private readonly userRepo: Repository<User>,
-    ) {}
+    ) {
+    }
 
     async create(dto: CreateVehicleDto) {
         const user = await this.userRepo.findOne({
-            where: { id: dto.userId },
+            where: {id: dto.userId},
         });
 
         if (!user) throw new NotFoundException('User not found');
 
         const existing = await this.vehicleRepo.findOne({
-            where: { plateNumber: dto.plateNumber },
+            where: {plateNumber: dto.plateNumber},
         });
 
         if (existing) {
@@ -45,7 +41,7 @@ export class VehicleService {
     }
 
     async findAll(userId?: string) {
-        const where = userId ? { user: { id: userId } } : {};
+        const where = userId ? {user: {id: userId}} : {};
 
         return this.vehicleRepo.find({
             where,
@@ -53,9 +49,20 @@ export class VehicleService {
         });
     }
 
+    async findMyVehicles(userId: string) {
+        return this.vehicleRepo.find({
+            where: {
+                user: {id: userId},
+            },
+            withDeleted: false,
+            relations: ['user'],
+            order: {plateNumber: 'ASC', createdAt: "DESC"},
+        });
+    }
+
     async findOne(id: string) {
         const vehicle = await this.vehicleRepo.findOne({
-            where: { id },
+            where: {id},
             relations: ['user'],
         });
 
@@ -69,7 +76,8 @@ export class VehicleService {
 
         if (dto.plateNumber) {
             const exists = await this.vehicleRepo.findOne({
-                where: { plateNumber: dto.plateNumber },
+                where: {plateNumber: dto.plateNumber},
+                withDeleted: true,
             });
 
             if (exists && exists.id !== id) {
@@ -82,8 +90,35 @@ export class VehicleService {
         return this.vehicleRepo.save(vehicle);
     }
 
+    async setDefaultVehicle(userId: string, vehicleId: string) {
+        const vehicle = await this.vehicleRepo.findOne({
+            where: {
+                id: vehicleId,
+                user: { id: userId },
+                deletedAt: IsNull(),
+            },
+        });
+
+        if (!vehicle) {
+            throw new NotFoundException('Vehicle not found');
+        }
+
+        await this.vehicleRepo.update(
+            { user: { id: userId }, isDefault: true },
+            { isDefault: false }
+        );
+
+        vehicle.isDefault = true;
+        return this.vehicleRepo.save(vehicle);
+    }
+
     async remove(id: string) {
-        const vehicle = await this.findOne(id);
-        return this.vehicleRepo.remove(vehicle);
+        const result = await this.vehicleRepo.softDelete(id);
+
+        if (result.affected === 0) {
+            throw new NotFoundException('Vehicle not found');
+        }
+
+        return result;
     }
 }

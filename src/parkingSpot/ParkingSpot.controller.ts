@@ -14,8 +14,8 @@ import {
 import { ParkingSpotStatus } from '../def/enums/ParkingSpotStatus';
 import { IsEnum } from 'class-validator';
 import {ParkingSpotService} from "./ParkingSpot.service";
-import {CreateParkingSpotDto} from "../def/dto/parkingSpot/create-parking-spot.dto";
-import {UpdateParkingSpotDto} from "../def/dto/parkingSpot/update-parking-spot.dto";
+import {CreateParkingSpotDto} from "../def/dto/parkingSpot/CreateParkingSpotDto";
+import {UpdateParkingSpotDto} from "../def/dto/parkingSpot/UpdateParkingSpotDto";
 
 class UpdateStatusDto {
   @IsEnum(ParkingSpotStatus)
