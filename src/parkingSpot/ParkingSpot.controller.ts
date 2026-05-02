@@ -9,13 +9,14 @@ import {
   Query,
   ParseUUIDPipe,
   HttpCode,
-  HttpStatus,
+  HttpStatus, UseGuards,
 } from '@nestjs/common';
 import { ParkingSpotStatus } from '../def/enums/ParkingSpotStatus';
 import { IsEnum } from 'class-validator';
 import {ParkingSpotService} from "./ParkingSpot.service";
 import {CreateParkingSpotDto} from "../def/dto/parkingSpot/CreateParkingSpotDto";
 import {UpdateParkingSpotDto} from "../def/dto/parkingSpot/UpdateParkingSpotDto";
+import {JwtAuthGuard} from "../auth/guard/jwt-auth.guard";
 
 class UpdateStatusDto {
   @IsEnum(ParkingSpotStatus)
@@ -23,6 +24,7 @@ class UpdateStatusDto {
 }
 
 @Controller('parking-spots')
+@UseGuards(JwtAuthGuard)
 export class ParkingSpotController {
   constructor(private readonly parkingSpotService: ParkingSpotService) {}
 

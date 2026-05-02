@@ -10,6 +10,7 @@ import {
 import {ParkingSpotStatus} from "../def/enums/ParkingSpotStatus";
 import {ParkingSession} from "./ParkingSession";
 import {ParkingLot} from "./ParkingLot";
+import {ParkingSpotType} from "./ParkingSpotType";
 
 @Entity()
 export class ParkingSpot {
@@ -27,6 +28,9 @@ export class ParkingSpot {
         enum: ParkingSpotStatus,
     })
     status: ParkingSpotStatus;
+
+    @ManyToOne(() => ParkingSpotType, (type) => type.spots)
+    type: ParkingSpotType;
 
     @CreateDateColumn()
     createdAt: Date;
