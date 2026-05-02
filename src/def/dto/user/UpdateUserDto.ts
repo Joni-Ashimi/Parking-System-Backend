@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import {IsEmail, IsOptional, IsString, IsUrl} from 'class-validator';
 
 export class UpdateUserDto {
     @IsOptional()
@@ -8,4 +8,14 @@ export class UpdateUserDto {
     @IsOptional()
     @IsEmail()
     email?: string;
+
+    @IsOptional()
+    lastLoginAt?: Date;
+
+    @IsOptional()
+    @IsUrl()
+    profileImageUrl?: string;
+
+    @IsOptional()
+    lastPasswordResetAt?: Date;
 }

@@ -11,9 +11,14 @@ import {ParkingLotModule} from "./parkingLot/parkingLot.module";
 import {VehiclesModule} from "./vehicles/vehicles.module";
 import {RedisModule} from "./redis/redis.module";
 import {EmailModule} from "./email/email.module";
+import { ConfigModule } from '@nestjs/config';
+import {ViolationModule} from "./violation/violation.module";
+import {CloudinaryModule} from "./cloudinary/cloudinary.module";
+import {NotificationModule} from "./notifications/notifications.module";
 
 @Module({
     imports: [
+        ConfigModule.forRoot({ isGlobal: true}),
         ScheduleModule.forRoot(),
         CONFIG,
         DB,
@@ -24,6 +29,9 @@ import {EmailModule} from "./email/email.module";
         VehiclesModule,
         RedisModule,
         EmailModule,
+        ViolationModule,
+        CloudinaryModule,
+        NotificationModule
     ],
     controllers: [AppController],
     providers: [AppService],

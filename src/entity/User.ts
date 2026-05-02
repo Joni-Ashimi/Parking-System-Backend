@@ -15,10 +15,13 @@ export class User {
     })
     type: UserType;
 
-    @Column()
+    @Column({nullable: false})
     name: string;
 
-    @Column({nullable: true})
+    @Column({nullable: true, unique: true})
+    phoneNumber: string;
+
+    @Column({nullable: true, unique: true})
     email: string;
 
     @Column()
@@ -26,6 +29,9 @@ export class User {
 
     @Column({nullable: true})
     lastPasswordResetAt: Date;
+
+    @Column({ type: 'timestamp', nullable: true })
+    lastLoginAt: Date;
 
     @Column({ default: 0 })
     tokenVersion: number;
@@ -36,7 +42,7 @@ export class User {
     @DeleteDateColumn()
     deletedAt?: Date;
 
-    @Column({type: "enum", enum: UserVerificationStatus, default: 'pending'})
+    @Column({type: "enum", enum: UserVerificationStatus, default: UserVerificationStatus.PENDING})
     verificationStatus: UserVerificationStatus
 
     @Column({ type: 'text', nullable: true})

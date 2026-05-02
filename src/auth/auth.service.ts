@@ -25,8 +25,10 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly emailService: EmailService,
+
         @InjectRepository(PasswordReset)
         private readonly passwordResetRepository: Repository<PasswordReset>
+
     ) {}
 
     private generateUserWithToken(payload: JwtPayload) {
@@ -82,6 +84,9 @@ export class AuthService {
             name: existingUser.name,
             tokenVersion: existingUser.tokenVersion,
         };
+        await this.usersService.partialUpdate(existingUser?.id, {
+            lastLoginAt: new Date(),
+        });
         return this.generateUserWithToken(payload);
     }
 
@@ -89,24 +94,16 @@ export class AuthService {
         if (!refreshToken) {
             throw new UnauthorizedException('No refresh token provided');
         }
-
-        console.log("🔥 REFRESH ENDPOINT HIT");
-        console.log("TOKEN RECEIVED:", refreshToken);
-        console.log("SECRET:", this.configService.get('JWT_REFRESH_TOKEN_SECRET'));
         try {
             const payload: JwtPayload = this.jwtService.verify<JwtPayload>(refreshToken, {
                 secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
             });
-            console.log('decoded payload', payload);
-
             const user = await this.usersService.findOne(payload.id);
-            console.log('user', user);
             if (!user) {
                 throw new UnauthorizedException('User not found');
             }
 
             if (user.tokenVersion !== payload.tokenVersion) {
-                console.log("VERSION MISMATCH");
                 throw new UnauthorizedException('Token expired');
             }
 
@@ -122,8 +119,6 @@ export class AuthService {
                     expiresIn: this.configService.get<string>('JWT_EXPIRES_IN') as any,
                 },
             );
-            console.log('newAccessToken created', newAccessToken);
-
             return {
                 accessToken: newAccessToken,
                 user: {
@@ -170,7 +165,6 @@ export class AuthService {
             },
             order: {createdAt: 'DESC'},
         });
-
         if (!record) throw new NotFoundException('No valid reset request found');
 
         const isCodeValid = await bcrypt.compare(dto.code, record.codeHash);
@@ -179,6 +173,7 @@ export class AuthService {
         const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
         await this.usersService.updatePassword(userId, hashedPassword);
         await this.usersService.incrementTokenVersion(userId);
+        await this.usersService.partialUpdate(userId, {lastPasswordResetAt: new Date()})
 
         // Update the column of user lastPasswordResetAt
         await this.passwordResetRepository.delete({id: record.id});
