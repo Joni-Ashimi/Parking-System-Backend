@@ -1,7 +1,7 @@
 import {
     Column,
     CreateDateColumn, DeleteDateColumn,
-    Entity,
+    Entity, JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -10,7 +10,7 @@ import {
 import {ParkingSpotStatus} from "../def/enums/ParkingSpotStatus";
 import {ParkingSession} from "./ParkingSession";
 import {ParkingLot} from "./ParkingLot";
-import {ParkingSpotType} from "./ParkingSpotType";
+import {SpotCategory} from "./SpotCategory";
 
 @Entity()
 export class ParkingSpot {
@@ -29,8 +29,12 @@ export class ParkingSpot {
     })
     status: ParkingSpotStatus;
 
-    @ManyToOne(() => ParkingSpotType, (type) => type.spots)
-    type: ParkingSpotType;
+    @ManyToOne(() => SpotCategory, (type) => type.spots, {
+        nullable: false,
+        onDelete: 'RESTRICT',
+    })
+    @JoinColumn({ name: 'typeId' })
+    type: SpotCategory;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -44,6 +48,9 @@ export class ParkingSpot {
     @OneToMany(() => ParkingSession, (session) => session.spot)
     sessions: ParkingSession[];
 
-    @ManyToOne(() => ParkingLot, (parkingLot) => parkingLot.spots)
+    @ManyToOne(() => ParkingLot, (parkingLot) => parkingLot.spots, {
+        nullable: false,
+    })
+    @JoinColumn({ name: 'lotId' })
     lot: ParkingLot;
 }

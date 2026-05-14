@@ -2,12 +2,12 @@ import {
     Column,
     CreateDateColumn,
     DeleteDateColumn,
-    Entity,
+    Entity, JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn
 } from "typeorm";
-import {ParkingSpotType} from "./ParkingSpotType";
+import {SpotCategory} from "./SpotCategory";
 
 @Entity()
 export class PricingRule {
@@ -21,9 +21,12 @@ export class PricingRule {
         type: 'enum',
         enum: ['DISCOUNT', 'SURCHARGE'],
     })
-    type: 'DISCOUNT' | 'SURCHARGE';
+    adjustmentType: 'DISCOUNT' | 'SURCHARGE';
 
-    @Column('decimal')
+    @Column('decimal', {
+        precision: 10,
+        scale: 2,
+    })
     value: number; // percentage (e.g. 10 = 10%)
 
     // optional time constraints
@@ -36,8 +39,12 @@ export class PricingRule {
     @Column({ nullable: true })
     endHour: number;
 
-    @ManyToOne(() => ParkingSpotType, (type) => type.rules)
-    parkingSpotType: ParkingSpotType;
+    @ManyToOne(() => SpotCategory, (type) => type.rules, {
+        nullable: false,
+        onDelete: 'CASCADE',
+    })
+    @JoinColumn({ name: 'spotCategoryId' })
+    spotCategory: SpotCategory;
 
     @CreateDateColumn()
     createdAt: Date;

@@ -1,21 +1,21 @@
 import {Injectable, NotFoundException} from '@nestjs/common';
 import {Repository} from "typeorm";
 import {InjectRepository} from "@nestjs/typeorm";
-import {ParkingSpotType} from "../entity/ParkingSpotType";
+import {SpotCategory} from "../entity/SpotCategory";
 import {PricingRule} from "../entity/PricingRule";
 
 @Injectable()
 export class ParkingPricingService {
     constructor(
-        @InjectRepository(ParkingSpotType)
-        private parkingSpotTypeRepo: Repository<ParkingSpotType>,
+        @InjectRepository(SpotCategory)
+        private spotCategoryRepository: Repository<SpotCategory>,
 
         @InjectRepository(PricingRule)
         private pricingRuleRepository: Repository<PricingRule>,
     ) {}
 
     async calculatePrice(spotTypeId: string, hours: number, date: Date) {
-        const type = await this.parkingSpotTypeRepo.findOne({
+        const type = await this.spotCategoryRepository.findOne({
             where: { id: spotTypeId },
         });
         if (!type) throw new NotFoundException('Parking spot type not found');
@@ -25,7 +25,7 @@ export class ParkingPricingService {
                 : type.baseHourlyRate * hours;
 
         const [rules, ruleCount] = await this.pricingRuleRepository.findAndCount({
-            where: { parkingSpotType: { id: spotTypeId } },
+            where: { spotCategory: { id: spotTypeId } },
         });
 
         for (const rule of rules) {
@@ -34,7 +34,7 @@ export class ParkingPricingService {
             const delta = price * (rule.value / 100);
 
             price =
-                rule.type === 'DISCOUNT'
+                rule.adjustmentType === 'DISCOUNT'
                     ? price - delta
                     : price + delta;
         }

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import {ParkingSpotType} from "../entity/ParkingSpotType";
+import {SpotCategory} from "../entity/SpotCategory";
 import {ParkingSpot} from "../entity/ParkingSpot";
 import {PricingRule} from "../entity/PricingRule";
 import {ParkingPricingService} from "./parkingPricing.service";
@@ -11,7 +11,7 @@ import {ParkingAdminController} from "./parkingAdmin.controller";
 @Module({
     imports: [
         TypeOrmModule.forFeature([
-            ParkingSpotType,
+            SpotCategory,
             ParkingSpot,
             PricingRule,
         ]),

@@ -8,6 +8,8 @@ import {User} from "./entity/User";
 import {Vehicle} from "./entity/Vehicle";
 import {Notification} from "./entity/Notification";
 import {PasswordReset} from "./entity/PasswordReset";
+import {SpotCategory} from "./entity/SpotCategory";
+import {PricingRule} from "./entity/PricingRule";
 
 dotenv.config();
 
@@ -18,7 +20,7 @@ export const AppDataSource = new DataSource({
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
-    entities: [Notification, Transaction, ParkingLot, ParkingSession, ParkingSpot, User, Vehicle, PasswordReset],
+    entities: [Notification, Transaction, ParkingLot, ParkingSession, ParkingSpot, SpotCategory, PricingRule, User, Vehicle, PasswordReset],
     migrations: ['src/migrations/*.ts'],
     synchronize: true,
     namingStrategy: new DefaultNamingStrategy(),

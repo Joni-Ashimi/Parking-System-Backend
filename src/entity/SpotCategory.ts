@@ -9,11 +9,19 @@ import {
 } from "typeorm";
 import {ParkingSpot} from "./ParkingSpot";
 import {PricingRule} from "./PricingRule";
+import {ParkingSpotTypeCode} from "../def/enums/ParkingSpotType";
 
 @Entity()
-export class ParkingSpotType {
+export class SpotCategory {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Column({
+        type: 'enum',
+        enum: ParkingSpotTypeCode,
+        unique: true,
+    })
+    code: ParkingSpotTypeCode;
 
     @Column()
     name: string; // Car, Truck, Bike
@@ -30,7 +38,7 @@ export class ParkingSpotType {
     @OneToMany(() => ParkingSpot, (spot) => spot.type)
     spots: ParkingSpot[];
 
-    @OneToMany(() => PricingRule, (rule) => rule.type)
+    @OneToMany(() => PricingRule, (rule) => rule.spotCategory)
     rules: PricingRule[];
 
     @CreateDateColumn()

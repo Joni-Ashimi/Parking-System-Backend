@@ -49,7 +49,8 @@ export class ParkingSpotService {
     async findAll(lotId?: string): Promise<ParkingSpot[]> {
         const query = this.parkingSpotRepository
             .createQueryBuilder('spot')
-            .leftJoinAndSelect('spot.lot', 'lot');
+            .leftJoinAndSelect('spot.lot', 'lot')
+            .leftJoinAndSelect('spot.type', 'type');
 
         if (lotId) {
             query.where('lot.id = :lotId', {lotId});
