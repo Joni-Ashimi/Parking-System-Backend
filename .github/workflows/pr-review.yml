@@ -1,0 +1,32 @@
+name: Automated AI PR Review & Summary
+
+on:
+  pull_request:
+    branches: [ back-develop, main ]
+    types: [ opened, synchronize ] # Runs when opened or when new commits are pushed
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Required so the bot can write review comments
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetches all history so it can see the code diff correctly
+
+      - name: Run AI PR Reviewer
+        uses: google-gemini/pr-reviewer-action@v1 # Free open-source wrapper action
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        with:
+          model: 'gemini-2.5-flash' # Fast, accurate, and fully available on the free tier
+          prompt: |
+            You are an expert full-stack senior software engineer. Review the following Pull Request code changes.
+            Provide your response in two sections:
+            1. **Summary**: A bulleted summary of what changes were introduced.
+            2. **Code Review**: Point out any potential bugs, safety risks, missing database transactions, or architecture improvements. Keep suggestions constructive, clean, and direct.
