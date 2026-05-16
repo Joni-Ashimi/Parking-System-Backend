@@ -21,6 +21,9 @@ export class User {
     @Column({nullable: true, unique: true})
     phoneNumber: string;
 
+    @Column({nullable: true})
+    gender: 'MALE' | 'FEMALE'
+
     @Column({nullable: true, unique: true})
     email: string;
 
@@ -30,10 +33,10 @@ export class User {
     @Column({nullable: true})
     lastPasswordResetAt: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({type: 'timestamp', nullable: true})
     lastLoginAt: Date;
 
-    @Column({ default: 0 })
+    @Column({default: 0})
     tokenVersion: number;
 
     @CreateDateColumn()
@@ -45,7 +48,7 @@ export class User {
     @Column({type: "enum", enum: UserVerificationStatus, default: UserVerificationStatus.PENDING})
     verificationStatus: UserVerificationStatus
 
-    @Column({ type: 'text', nullable: true})
+    @Column({type: 'text', nullable: true})
     profileImageUrl?: string | null;
 
     @OneToMany(() => Vehicle, (vehicle) => vehicle.user)

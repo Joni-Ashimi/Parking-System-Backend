@@ -11,7 +11,7 @@ import {
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
-import {UsersService} from './users.service';
+import {GlobalStatsDto, UsersService} from './users.service';
 import {type PaginationQuery} from 'src/def/pagination-query';
 import {JwtAuthGuard} from "../auth/guard/jwt-auth.guard";
 import {ValidationPipe} from 'src/pipes/joi-validator.pipe';
@@ -53,7 +53,12 @@ export class UsersController {
 
     @Delete('/me')
     remove(@CurrentLoggedInUser() user: { id: string }) {
-        return this.usersService.delete(user.id);
+        return this.usersService.deleteMe(user.id);
+    }
+
+    @Delete(':id')
+    deleteUser(@Param('id') id: string ) {
+        return this.usersService.deleteUser(id);
     }
 
     @Patch(':id/activate')
@@ -92,12 +97,19 @@ export class UsersController {
                     qs: Joi.string().allow("").default(""),
                     page: Joi.number().positive().default(1),
                     pageSize: Joi.number().positive().default(10),
+                    sortBy: Joi.string().default("createdAt"),
+                    sortOrder: Joi.string().valid("ASC", "DESC").default("DESC"),
                 }),
             ),
         )
         query: PaginationQuery,
     ) {
         return this.usersService.findAll(query);
+    }
+
+    @Get('stats')
+    async getUserStats(): Promise<GlobalStatsDto> {
+        return await this.usersService.getUsersStats();
     }
 
     @Get(':id')

@@ -1,4 +1,4 @@
-import {BadRequestException, Inject, Injectable, NotFoundException} from '@nestjs/common';
+import {BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {ILike, Repository} from 'typeorm';
 import {User} from "../entity/User";
@@ -7,11 +7,17 @@ import {CreateUserDto} from "../def/dto/user/CreateUserDto";
 import {UpdateUserDto} from "../def/dto/user/UpdateUserDto";
 import {UserVerificationStatus} from "../def/enums/UserVerificationStatus";
 
+export interface GlobalStatsDto {
+    total: number;
+    verified: number;
+    pending: number;
+    banned: number;
+}
+
 @Injectable()
 export class UsersService {
     constructor(
         @Inject('CLOUDINARY') private readonly cloudinary: any,
-
         @InjectRepository(User)
         private usersRepository: Repository<User>,
     ) {
@@ -22,7 +28,7 @@ export class UsersService {
         const result = await new Promise<{ secure_url: string }>(
             (resolve, reject) => {
                 const uploadStream = this.cloudinary.uploader.upload_stream(
-                    { folder: 'parking_user_profile_image', resource_type: 'image' },
+                    {folder: 'parking_user_profile_image', resource_type: 'image'},
                     (error, result) => {
                         if (error) return reject(error);
                         resolve(result as { secure_url: string });
@@ -87,7 +93,17 @@ export class UsersService {
         return this.usersRepository.save(user);
     }
 
-    async delete(id: string) {
+    async deleteUser(id: string) {
+        const existingUser = await this.usersRepository.findOne({ where: { id } });
+        if (!existingUser) {
+            throw new NotFoundException(`User with Id: ${id} not found!`);
+        }
+
+        await this.usersRepository.softDelete(id);
+        return { message: `User ${id} has been soft-deleted` };
+    }
+
+    async deleteMe(id: string) {
         const existingUser = await this.usersRepository.findOne({where: {id}});
         if (!existingUser)
             throw new NotFoundException(`User with Id: ${id} not found!`);
@@ -95,16 +111,23 @@ export class UsersService {
         return {message: `User ${id} has been soft-deleted`};
     }
 
-    async findAll({qs = "", pageSize = 10, page = 1}: PaginationQuery) {
-        const [data, total] = await this.usersRepository.findAndCount({
-            where: [
-                {email: ILike(`%${qs}%`)},
-                {name: ILike(`%${qs}%`)},
-            ],
-            take: pageSize,
-            skip: (page - 1) * pageSize,
-            order: {name: "ASC"},
-        });
+    async findAll({qs = "", pageSize = 10, page = 1, sortBy = "createdAt", sortOrder = "DESC",}: PaginationQuery) {
+        const queryBuilder = this.usersRepository.createQueryBuilder('user');
+
+        if (qs) {
+            queryBuilder.where('user.name ILike :qs OR user.email ILike :qs', { qs: `%${qs}%` });
+        }
+        if (sortBy) {
+            const normalizedOrder = (sortOrder?.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';
+            queryBuilder.orderBy(`user.${sortBy}`, normalizedOrder);
+        } else {
+            queryBuilder.orderBy('user.createdAt', 'DESC');
+        }
+
+        const [data, total] = await queryBuilder
+            .take(pageSize)
+            .skip((page - 1) * pageSize)
+            .getManyAndCount();
 
         return {
             data,
@@ -112,6 +135,47 @@ export class UsersService {
             page,
             pageSize,
         };
+    }
+
+    async getUsersStats(): Promise<GlobalStatsDto> {
+        try {
+            const rawStats = await this.usersRepository
+                .createQueryBuilder('user')
+                .select('user.verificationStatus', 'status')
+                .addSelect('COUNT(user.id)', 'count')
+                .groupBy('user.verificationStatus')
+                .getRawMany();
+
+            const stats: GlobalStatsDto = {
+                total: 0,
+                verified: 0,
+                pending: 0,
+                banned: 0,
+            };
+
+            rawStats.forEach((row) => {
+                const count = parseInt(row.count, 10);
+                stats.total += count;
+
+                switch (row.status?.toLowerCase()) {
+                    case 'verified':
+                        stats.verified = count;
+                        break;
+                    case 'pending':
+                        stats.pending = count;
+                        break;
+                    case 'banned':
+                        stats.banned = count;
+                        break;
+                }
+            });
+
+            return stats;
+        } catch (error) {
+            throw new InternalServerErrorException(
+                'Failed to calculate user status metrics via group aggregation',
+            );
+        }
     }
 
     async updatePassword(userId: string, hashedPassword: string) {

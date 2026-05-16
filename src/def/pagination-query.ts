@@ -2,6 +2,8 @@ export type PaginationQuery = {
     qs?: string;
     page: number;
     pageSize: number;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
 };
 
 export interface FindAuctionsOptions extends PaginationQuery {
