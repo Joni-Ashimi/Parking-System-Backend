@@ -4,9 +4,10 @@ import {ParkingSpot} from "../entity/ParkingSpot";
 import {ParkingSpotController} from "./ParkingSpot.controller";
 import {ParkingSpotService} from "./ParkingSpot.service";
 import {ParkingLot} from "../entity/ParkingLot";
+import {SpotCategory} from "../entity/SpotCategory";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ParkingSpot, ParkingLot])],
+  imports: [TypeOrmModule.forFeature([ParkingSpot, ParkingLot, SpotCategory])],
   controllers: [ParkingSpotController],
   providers: [ParkingSpotService],
   exports: [ParkingSpotService],

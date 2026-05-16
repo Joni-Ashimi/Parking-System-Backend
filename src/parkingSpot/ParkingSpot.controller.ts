@@ -17,6 +17,7 @@ import {ParkingSpotService} from "./ParkingSpot.service";
 import {CreateParkingSpotDto} from "../def/dto/parkingSpot/CreateParkingSpotDto";
 import {UpdateParkingSpotDto} from "../def/dto/parkingSpot/UpdateParkingSpotDto";
 import {JwtAuthGuard} from "../auth/guard/jwt-auth.guard";
+import {GetParkingSpotsQueryDto} from "../def/dto/parkingSpot/getParkingSpotQueryDto";
 
 class UpdateStatusDto {
   @IsEnum(ParkingSpotStatus)
@@ -34,8 +35,13 @@ export class ParkingSpotController {
   }
 
   @Get()
-  findAll(@Query('lotId') lotId?: string) {
-    return this.parkingSpotService.findAll(lotId);
+  findAll(@Query() query : GetParkingSpotsQueryDto) {
+    return this.parkingSpotService.findAll(query);
+  }
+
+  @Get('stats')
+  getDashboardStats(@Query('lotId') lotId?: string) {
+    return this.parkingSpotService.getDashboardStats(lotId);
   }
 
   @Get('available')

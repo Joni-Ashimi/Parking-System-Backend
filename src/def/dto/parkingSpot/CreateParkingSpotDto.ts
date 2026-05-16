@@ -1,8 +1,9 @@
-import { IsEnum, IsInt, IsString, Min } from 'class-validator';
+import {IsEnum, IsInt, IsNotEmpty, IsString, Min} from 'class-validator';
 import {ParkingSpotStatus} from "../../enums/ParkingSpotStatus";
 
 export class CreateParkingSpotDto {
     @IsString()
+    @IsNotEmpty()
     spotNumber: string;
 
     @IsInt()
@@ -13,5 +14,9 @@ export class CreateParkingSpotDto {
     status: ParkingSpotStatus;
 
     @IsString()
+    @IsNotEmpty()
     lotId: string;
+
+    @IsNotEmpty()
+    typeId: string;
 }

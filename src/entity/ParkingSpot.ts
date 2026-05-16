@@ -17,7 +17,7 @@ export class ParkingSpot {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
+    @Column({ unique: true})
     spotNumber: string;
 
     @Column()
