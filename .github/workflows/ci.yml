@@ -2,9 +2,10 @@ name: Build and Test Check
 
 on:
   push:
-    branches: [ main ]
+    branches: [ back-develop, main ]
   pull_request:
-    branches: [ main ]
+    branches: [ back-develop, main ]
+  workflow_dispatch:
 
 jobs:
   test-project:
