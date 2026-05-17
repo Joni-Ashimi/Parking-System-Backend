@@ -19,16 +19,63 @@ jobs:
           fetch-depth: 0
 
       - name: Run AI PR Reviewer
-        # FIXED: Changed to the correct community action repository path
         uses: actions/github-script@v7
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         with:
-          model: 'gemini-2.5-flash'
-          prompt: |
-            You are an expert full-stack senior software engineer. Review the following Pull Request code changes.
+          script: |
+            const { owner, repo, number: pull_number } = context.issue;
+            
+            // 1. Get the PR patch/diff data from GitHub API
+            const { data: prDiff } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number,
+              headers: { accept: 'application.vnd.github.v3.diff' }
+            });
+
+            // If the diff is exceptionally large, trim it down to fit token contexts smoothly
+            const maxDiffLength = 40000;
+            const truncatedDiff = prDiff.length > maxDiffLength 
+              ? prDiff.substring(0, maxDiffLength) + "\n\n[Diff truncated due to size limits...]"
+              : prDiff;
+
+            // 2. Prepare the payload structured for the Gemini API
+            const prompt = `You are an expert full-stack senior software engineer. Review the following Pull Request code changes diff.
             Provide your response in two sections:
             1. **Summary**: A bulleted summary of what changes were introduced.
             2. **Code Review**: Point out any potential bugs, safety risks, missing database transactions, or architecture improvements. Keep suggestions constructive, clean, and direct.
-          script: ''
+
+            PR DIFF:
+            ${truncatedDiff}`;
+
+            const payload = {
+              contents: [{ parts: [{ text: prompt }] }]
+            };
+
+            // 3. Make the fetch request directly to Google Gemini API (using gemini-2.5-flash)
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`Gemini API error status ${response.status}: ${errorText}`);
+            }
+
+            const resData = await response.json();
+            const aiReviewText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (!aiReviewText) {
+              throw new Error("Failed to receive a valid generation text string parsing from the API platform pipeline.");
+            }
+
+            // 4. Leave a pristine review summary comment directly onto the active PR discussion stream
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: pull_number,
+              body: `### 🤖 AI Code Review Summary\n\n${aiReviewText}`
+            });
