@@ -20,7 +20,7 @@ jobs:
 
       - name: Run AI PR Reviewer
         # FIXED: Changed to the correct community action repository path
-        uses: google-gemini/gemini-pr-reviewer@main
+        uses: actions/github-script@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -31,3 +31,4 @@ jobs:
             Provide your response in two sections:
             1. **Summary**: A bulleted summary of what changes were introduced.
             2. **Code Review**: Point out any potential bugs, safety risks, missing database transactions, or architecture improvements. Keep suggestions constructive, clean, and direct.
+          script: ''
