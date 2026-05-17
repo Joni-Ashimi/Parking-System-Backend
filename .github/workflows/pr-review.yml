@@ -19,7 +19,8 @@ jobs:
           fetch-depth: 0 # Fetches all history so it can see the code diff correctly
 
       - name: Run AI PR Reviewer
-        uses: google-gemini/pr-reviewer-action@v1 # Free open-source wrapper action
+        # FIXED: Changed to the real open-source repository name
+        uses: google-gemini/gemini-pr-reviewer@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
