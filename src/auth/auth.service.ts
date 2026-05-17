@@ -172,7 +172,6 @@ export class AuthService {
 
         const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
         await this.usersService.updatePassword(userId, hashedPassword);
-        await this.usersService.incrementTokenVersion(userId);
         await this.usersService.partialUpdate(userId, {lastPasswordResetAt: new Date()})
 
         // Update the column of user lastPasswordResetAt

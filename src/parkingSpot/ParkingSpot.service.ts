@@ -1,6 +1,6 @@
-import {ConflictException, Injectable, NotFoundException,} from '@nestjs/common';
+import {BadRequestException, ConflictException, Injectable, NotFoundException,} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
-import {Repository} from 'typeorm';
+import {DataSource, Like, Repository} from 'typeorm';
 import {ParkingSpotStatus} from '../def/enums/ParkingSpotStatus';
 import {ParkingSpot} from "../entity/ParkingSpot";
 import {ParkingLot} from "../entity/ParkingLot";
@@ -18,58 +18,79 @@ export class ParkingSpotService {
         private readonly parkingLotRepository: Repository<ParkingLot>,
         @InjectRepository(SpotCategory)
         private readonly spotCategoryRepository: Repository<SpotCategory>,
+        private dataSource: DataSource,
     ) {
     }
 
     async create(dto: CreateParkingSpotDto): Promise<ParkingSpot> {
-        const existingSpot = await this.parkingSpotRepository.findOne({
-            where: {spotNumber: dto.spotNumber.trim()}
-        });
+        const cleanSpotNumber = dto.spotNumber.trim();
 
-        if (existingSpot) {
-            throw new ConflictException(`Parking spot number "${dto.spotNumber}" already exists.`);
-        }
-        ;
+        // 1. Validate spot format and isolate the row early
+        const parts = cleanSpotNumber.split('-');
+        const targetRow = parts[0].trim().toUpperCase();
 
-        const lot = await this.parkingLotRepository.findOne({
-            where: {id: dto.lotId},
-        });
-
-        if (!lot) {
-            throw new NotFoundException(`ParkingLot with id "${dto.lotId}" not found`);
+        if (!targetRow || parts.length < 2) {
+            throw new BadRequestException('Invalid spot number formatting sequence. Expected format like "A-01".');
         }
 
-        const spotCategory = await this.spotCategoryRepository.findOne({
-            where: {id: dto.typeId},
+        // 2. Count existing spots in this row for this specific lot using TypeORM Like
+        const existingRowSpotsCount = await this.parkingSpotRepository.count({
+            where: {
+                spotNumber: Like(`${targetRow}-%`),
+                lot: {id: dto.lotId}
+            },
         });
 
-        if (!spotCategory) {
-            throw new NotFoundException(`SpotCategory with id "${dto.typeId}" not found`);
-        }
-
-        const existing = await this.parkingSpotRepository.findOne({
-            where: {spotNumber: dto.spotNumber, lot: {id: dto.lotId}},
-        });
-
-        if (existing) {
-            throw new ConflictException(
-                `Spot number "${dto.spotNumber}" already exists in this lot`,
+        const MAX_ROW_COLUMNS = 10;
+        if (existingRowSpotsCount >= MAX_ROW_COLUMNS) {
+            const nextSuggestedRow = String.fromCharCode(targetRow.charCodeAt(0) + 1);
+            throw new BadRequestException(
+                `Row group "${targetRow}" is full. Please shift allocation to row "${nextSuggestedRow}".`,
             );
         }
 
+        // 3. Check for a duplicate spot number within the same lot
+        const duplicateSpot = await this.parkingSpotRepository.findOne({
+            where: {
+                spotNumber: cleanSpotNumber,
+                lot: {id: dto.lotId}
+            },
+        });
+
+        if (duplicateSpot) {
+            throw new ConflictException(
+                `Spot number "${cleanSpotNumber}" already exists in this parking lot.`,
+            );
+        }
+
+        // 4. Fetch relational dependencies in parallel to minimize database roundtrips
+        const [lot, spotCategory] = await Promise.all([
+            this.parkingLotRepository.findOne({where: {id: dto.lotId}}),
+            this.spotCategoryRepository.findOne({where: {id: dto.typeId}}),
+        ]);
+
+        if (!lot) {
+            throw new NotFoundException(`ParkingLot with id "${dto.lotId}" not found.`);
+        }
+
+        if (!spotCategory) {
+            throw new NotFoundException(`SpotCategory with id "${dto.typeId}" not found.`);
+        }
+
+        // 5. Instantiate and persist the TypeORM entity
         const spot = this.parkingSpotRepository.create({
-            spotNumber: dto.spotNumber,
+            spotNumber: cleanSpotNumber,
             floor: dto.floor,
             status: dto.status,
             lot,
             type: spotCategory,
         });
 
-        return this.parkingSpotRepository.save(spot);
+        return await this.parkingSpotRepository.save(spot);
     }
 
     async findAll(queryDto: GetParkingSpotsQueryDto = {}) {
-        const { lotId, page = 1, pageSize = 8, qs } = queryDto;
+        const {lotId, page = 1, pageSize = 8, qs} = queryDto;
 
         const query = this.parkingSpotRepository
             .createQueryBuilder('spot')
@@ -79,11 +100,11 @@ export class ParkingSpotService {
             .leftJoinAndSelect('type.rules', 'rules');
 
         if (lotId) {
-            query.where('lot.id = :lotId', { lotId });
+            query.where('lot.id = :lotId', {lotId});
         }
 
         if (qs) {
-            query.andWhere('spot.spotNumber LIKE :qs', { qs: `%${qs}%` });
+            query.andWhere('spot.spotNumber LIKE :qs', {qs: `%${qs}%`});
         }
 
         query.skip((page - 1) * pageSize).take(pageSize);
@@ -151,6 +172,16 @@ export class ParkingSpotService {
                 totalPages: Math.ceil(total / pageSize),
             },
         };
+    }
+
+    async findAllForMap() {
+        return this.dataSource.getRepository(ParkingSpot).find({
+            select: ['id', 'spotNumber', 'floor', 'status'],
+            order: {
+                floor: 'ASC',
+                spotNumber: 'ASC',
+            },
+        });
     }
 
     async getDashboardStats(lotId?: string) {

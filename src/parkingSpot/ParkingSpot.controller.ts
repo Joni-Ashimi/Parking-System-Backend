@@ -1,18 +1,19 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Query,
-  ParseUUIDPipe,
-  HttpCode,
-  HttpStatus, UseGuards,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Param,
+    ParseUUIDPipe,
+    Patch,
+    Post,
+    Query,
+    UseGuards,
 } from '@nestjs/common';
-import { ParkingSpotStatus } from '../def/enums/ParkingSpotStatus';
-import { IsEnum } from 'class-validator';
+import {ParkingSpotStatus} from '../def/enums/ParkingSpotStatus';
+import {IsEnum} from 'class-validator';
 import {ParkingSpotService} from "./ParkingSpot.service";
 import {CreateParkingSpotDto} from "../def/dto/parkingSpot/CreateParkingSpotDto";
 import {UpdateParkingSpotDto} from "../def/dto/parkingSpot/UpdateParkingSpotDto";
@@ -20,59 +21,65 @@ import {JwtAuthGuard} from "../auth/guard/jwt-auth.guard";
 import {GetParkingSpotsQueryDto} from "../def/dto/parkingSpot/getParkingSpotQueryDto";
 
 class UpdateStatusDto {
-  @IsEnum(ParkingSpotStatus)
-  status: ParkingSpotStatus;
+    @IsEnum(ParkingSpotStatus)
+    status: ParkingSpotStatus;
 }
 
 @Controller('parking-spots')
 @UseGuards(JwtAuthGuard)
 export class ParkingSpotController {
-  constructor(private readonly parkingSpotService: ParkingSpotService) {}
+    constructor(private readonly parkingSpotService: ParkingSpotService) {
+    }
 
-  @Post()
-  create(@Body() dto: CreateParkingSpotDto) {
-    return this.parkingSpotService.create(dto);
-  }
+    @Get('map-layout')
+    async getMapLayout() {
+        return this.parkingSpotService.findAllForMap();
+    }
 
-  @Get()
-  findAll(@Query() query : GetParkingSpotsQueryDto) {
-    return this.parkingSpotService.findAll(query);
-  }
+    @Post()
+    create(@Body() dto: CreateParkingSpotDto) {
+        return this.parkingSpotService.create(dto);
+    }
 
-  @Get('stats')
-  getDashboardStats(@Query('lotId') lotId?: string) {
-    return this.parkingSpotService.getDashboardStats(lotId);
-  }
+    @Get()
+    findAll(@Query() query: GetParkingSpotsQueryDto) {
+        return this.parkingSpotService.findAll(query);
+    }
 
-  @Get('available')
-  findAllAvailable(@Query('lotId') lotId?: string) {
-    return this.parkingSpotService.findAllAvailable(lotId);
-  }
+    @Get('stats')
+    getDashboardStats(@Query('lotId') lotId?: string) {
+        return this.parkingSpotService.getDashboardStats(lotId);
+    }
 
-  @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.parkingSpotService.findOne(id);
-  }
+    @Get('available')
+    findAllAvailable(@Query('lotId') lotId?: string) {
+        return this.parkingSpotService.findAllAvailable(lotId);
+    }
 
-  @Patch(':id')
-  update(
-      @Param('id', ParseUUIDPipe) id: string,
-      @Body() dto: UpdateParkingSpotDto,
-  ) {
-    return this.parkingSpotService.update(id, dto);
-  }
+    @Get(':id')
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
+        return this.parkingSpotService.findOne(id);
+    }
 
-  @Patch(':id/status')
-  updateStatus(
-      @Param('id', ParseUUIDPipe) id: string,
-      @Body() dto: UpdateStatusDto,
-  ) {
-    return this.parkingSpotService.updateStatus(id, dto.status);
-  }
+    @Patch(':id')
+    update(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() dto: UpdateParkingSpotDto,
+    ) {
+        return this.parkingSpotService.update(id, dto);
+    }
 
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.parkingSpotService.remove(id);
-  }
+    @Patch(':id/status')
+    updateStatus(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() dto: UpdateStatusDto,
+    ) {
+        return this.parkingSpotService.updateStatus(id, dto.status);
+    }
+
+    @Delete(':id')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    remove(@Param('id', ParseUUIDPipe) id: string) {
+        return this.parkingSpotService.remove(id);
+    }
 }

@@ -1,4 +1,4 @@
-import {IsDate, IsString, MinLength} from "class-validator";
+import {IsString, MinLength} from "class-validator";
 
 export class ConfirmPasswordDto {
     @IsString()
@@ -8,7 +8,4 @@ export class ConfirmPasswordDto {
     @IsString()
     @MinLength(8)
     newPassword: string;
-
-    @IsDate()
-    lastPasswordResetAt: Date;
 }
