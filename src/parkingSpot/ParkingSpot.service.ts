@@ -23,12 +23,13 @@ export class ParkingSpotService {
 
     async create(dto: CreateParkingSpotDto): Promise<ParkingSpot> {
         const existingSpot = await this.parkingSpotRepository.findOne({
-            where: { spotNumber: dto.spotNumber.trim() }
+            where: {spotNumber: dto.spotNumber.trim()}
         });
 
         if (existingSpot) {
             throw new ConflictException(`Parking spot number "${dto.spotNumber}" already exists.`);
-        };
+        }
+        ;
 
         const lot = await this.parkingLotRepository.findOne({
             where: {id: dto.lotId},
@@ -68,26 +69,81 @@ export class ParkingSpotService {
     }
 
     async findAll(queryDto: GetParkingSpotsQueryDto = {}) {
-        const { lotId, page = 1, pageSize = 10, qs } = queryDto;
+        const { lotId, page = 1, pageSize = 8, qs } = queryDto;
+
         const query = this.parkingSpotRepository
             .createQueryBuilder('spot')
             .leftJoinAndSelect('spot.lot', 'lot')
-            .leftJoinAndSelect('spot.type', 'type');
+            .leftJoinAndSelect('spot.type', 'type')
+            // CRITICAL: We must load the rules relation associated with the spot type
+            .leftJoinAndSelect('type.rules', 'rules');
 
         if (lotId) {
-            query.where('lot.id = :lotId', {lotId});
-        };
+            query.where('lot.id = :lotId', { lotId });
+        }
 
         if (qs) {
             query.andWhere('spot.spotNumber LIKE :qs', { qs: `%${qs}%` });
         }
+
         query.skip((page - 1) * pageSize).take(pageSize);
         query.orderBy('spot.floor', 'ASC')
             .addOrderBy('spot.spotNumber', 'ASC');
 
         const [data, total] = await query.getManyAndCount();
+
+        // Get current time parameters for calculation matching
+        const now = new Date();
+        const currentDay = now.getDay();    // 0 = Sunday
+        const currentHour = now.getHours();  // 19
+
+        // Process each spot to dynamically inject current pricing states
+        const processedData = data.map((spot) => {
+            if (!spot.type) return spot;
+
+            const baseHourly = Number(spot.type.baseHourlyRate);
+            const baseDaily = Number(spot.type.baseDailyRate);
+
+            // Find if a rule applies to this vehicle category right now
+            const activeRule = spot.type.rules?.find((rule) => {
+                const ruleDay = rule.dayOfWeek !== null ? Number(rule.dayOfWeek) : null;
+                const ruleStart = rule.startHour !== null ? Number(rule.startHour) : null;
+                const ruleEnd = rule.endHour !== null ? Number(rule.endHour) : null;
+
+                const matchesDay = ruleDay === null || ruleDay === currentDay;
+
+                // Standard time window check logic
+                const matchesHour =
+                    ruleStart === null || ruleEnd === null ||
+                    (currentHour >= ruleStart && currentHour < ruleEnd);
+
+                return matchesDay && matchesHour;
+            });
+
+            let effectiveHourlyRate = baseHourly;
+            if (activeRule) {
+                const ruleValue = Number(activeRule.value);
+                effectiveHourlyRate = activeRule.adjustmentType === 'DISCOUNT'
+                    ? baseHourly * (1 - ruleValue / 100)
+                    : baseHourly * (1 + ruleValue / 100);
+            }
+
+            // Return updated object layout with correct properties
+            return {
+                ...spot,
+                type: {
+                    ...spot.type,
+                    baseHourlyRate: baseHourly,
+                    baseDailyRate: baseDaily,
+                    effectiveHourlyRate: Number(Math.max(0, effectiveHourlyRate).toFixed(2)),
+                    isDiscounted: effectiveHourlyRate < baseHourly,
+                    activeRuleName: activeRule ? activeRule.name : null,
+                }
+            };
+        });
+
         return {
-            data,
+            data: processedData,
             meta: {
                 total,
                 page,
@@ -169,7 +225,7 @@ export class ParkingSpotService {
             const trimmedNumber = dto.spotNumber.trim();
 
             const existingSpot = await this.parkingSpotRepository.findOne({
-                where: { spotNumber: trimmedNumber }
+                where: {spotNumber: trimmedNumber}
             });
 
             if (existingSpot && existingSpot.id !== id) {
@@ -181,7 +237,7 @@ export class ParkingSpotService {
 
         if (dto.lotId && dto.lotId !== spot.lot?.id) {
             const lot = await this.parkingLotRepository.findOne({
-                where: { id: dto.lotId },
+                where: {id: dto.lotId},
             });
             if (!lot) {
                 throw new NotFoundException(`ParkingLot with id "${dto.lotId}" not found`);
@@ -191,7 +247,7 @@ export class ParkingSpotService {
 
         if (dto.typeId && dto.typeId !== spot.type?.id) {
             const spotCategory = await this.spotCategoryRepository.findOne({
-                where: { id: dto.typeId },
+                where: {id: dto.typeId},
             });
             if (!spotCategory) {
                 throw new NotFoundException(`SpotCategory with id "${dto.typeId}" not found`);

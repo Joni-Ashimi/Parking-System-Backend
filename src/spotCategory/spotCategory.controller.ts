@@ -8,7 +8,7 @@ import {
     Param,
     ParseUUIDPipe,
     Patch,
-    Post,
+    Post, Put,
     UseGuards,
 } from '@nestjs/common';
 import {SpotCategoryService} from './spotCategory.service';
@@ -20,6 +20,19 @@ import {UpdateSpotCategoryDto} from "../def/dto/spotCategory/updateSpotCategoryD
 @UseGuards(JwtAuthGuard)
 export class SpotCategoryController {
     constructor(private readonly spotCategoryService: SpotCategoryService) {
+    }
+
+    @Get('dashboard')
+    async getDashboardData() {
+        return await this.spotCategoryService.getPricingDashboardData();
+    }
+
+    @Put(':id')
+    async modifyRates(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() body: { hourlyRate: number; dailyRate: number }
+    ) {
+        return await this.spotCategoryService.updateCategoryRates(id, body.hourlyRate, body.dailyRate);
     }
 
     @Post()
