@@ -19,9 +19,6 @@ export class Violation {
     @Index()
     userId: string;
 
-    @Column()
-    userName: string;
-
     @Column({
         type: "enum",
         enum: ViolationType,

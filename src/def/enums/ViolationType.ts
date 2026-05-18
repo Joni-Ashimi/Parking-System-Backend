@@ -3,4 +3,5 @@ export enum ViolationType {
     UNPAID = "unpaid",
     FRAUD = "fraud",
     OTHER = "other",
+    ADMIN_ACTION = "admin_action",
 }

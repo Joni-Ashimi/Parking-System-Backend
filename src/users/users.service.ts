@@ -1,11 +1,14 @@
 import {BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
-import {ILike, Repository} from 'typeorm';
+import {Repository} from 'typeorm';
 import {User} from "../entity/User";
 import {PaginationQuery} from "../def/pagination-query";
 import {CreateUserDto} from "../def/dto/user/CreateUserDto";
 import {UpdateUserDto} from "../def/dto/user/UpdateUserDto";
 import {UserVerificationStatus} from "../def/enums/UserVerificationStatus";
+import {ViolationStatus} from "../def/enums/ViolationStatus";
+import {ViolationType} from "../def/enums/ViolationType";
+import {Violation} from "../entity/Violation";
 
 export interface GlobalStatsDto {
     total: number;
@@ -19,7 +22,9 @@ export class UsersService {
     constructor(
         @Inject('CLOUDINARY') private readonly cloudinary: any,
         @InjectRepository(User)
-        private usersRepository: Repository<User>,
+        private readonly usersRepository: Repository<User>,
+        @InjectRepository(Violation)
+        private readonly violationRepository: Repository<Violation>,
     ) {
     }
 
@@ -94,13 +99,13 @@ export class UsersService {
     }
 
     async deleteUser(id: string) {
-        const existingUser = await this.usersRepository.findOne({ where: { id } });
+        const existingUser = await this.usersRepository.findOne({where: {id}});
         if (!existingUser) {
             throw new NotFoundException(`User with Id: ${id} not found!`);
         }
 
         await this.usersRepository.softDelete(id);
-        return { message: `User ${id} has been soft-deleted` };
+        return {message: `User ${id} has been soft-deleted`};
     }
 
     async deleteMe(id: string) {
@@ -115,7 +120,7 @@ export class UsersService {
         const queryBuilder = this.usersRepository.createQueryBuilder('user');
 
         if (qs) {
-            queryBuilder.where('user.name ILike :qs OR user.email ILike :qs', { qs: `%${qs}%` });
+            queryBuilder.where('user.name ILike :qs OR user.email ILike :qs', {qs: `%${qs}%`});
         }
         if (sortBy) {
             const normalizedOrder = (sortOrder?.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';
@@ -209,13 +214,26 @@ export class UsersService {
         return {message: `User ${userId} has been activated`};
     }
 
-    async banUser(userId: string) {
+    async banUser(userId: string, reason?: string, penaltyAmount?: number) {
         const user = await this.getUser(userId);
         if (!user) throw new NotFoundException(`User with Id: ${userId} not found!`);
         await this.usersRepository.update(
             {id: userId},
             {verificationStatus: UserVerificationStatus.BANNED},
         );
+
+        const violationData: Partial<Violation> = {
+            userId: user.id,
+            type: ViolationType.OTHER,
+            description: reason || 'User was banned by administrator',
+            penaltyAmount,
+            status: ViolationStatus.PENDING,
+        };
+
+        const violation = this.violationRepository.create(violationData);
+
+        await this.violationRepository.save(violation);
+
         return {message: `User ${userId} has been banned`};
-    };
+    }
 }
