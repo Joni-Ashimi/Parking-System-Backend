@@ -234,6 +234,6 @@ export class UsersService {
 
         await this.violationRepository.save(violation);
 
-        return {message: `User ${userId} has been banned`};
+        return {message: `User ${user?.name} has been banned`};
     }
 }

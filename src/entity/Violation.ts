@@ -28,7 +28,7 @@ export class Violation {
     @Column("text")
     description: string;
 
-    @Column("decimal", { precision: 10, scale: 2 })
+    @Column("decimal", { precision: 10, scale: 2, nullable: true })
     penaltyAmount: number;
 
     @Column({
