@@ -19,6 +19,9 @@ import {CreateParkingSpotDto} from "../def/dto/parkingSpot/CreateParkingSpotDto"
 import {UpdateParkingSpotDto} from "../def/dto/parkingSpot/UpdateParkingSpotDto";
 import {JwtAuthGuard} from "../auth/guard/jwt-auth.guard";
 import {GetParkingSpotsQueryDto} from "../def/dto/parkingSpot/getParkingSpotQueryDto";
+import {RolesGuard} from "../decorator/roles.guard";
+import {Roles} from "../decorator/roles.decorator";
+import {UserType} from "../def/enums/UserType";
 
 class UpdateStatusDto {
     @IsEnum(ParkingSpotStatus)
@@ -37,6 +40,8 @@ export class ParkingSpotController {
     }
 
     @Post()
+    @Roles(UserType.ADMIN)
+    @UseGuards(RolesGuard)
     create(@Body() dto: CreateParkingSpotDto) {
         return this.parkingSpotService.create(dto);
     }
@@ -47,6 +52,8 @@ export class ParkingSpotController {
     }
 
     @Get('stats')
+    @Roles(UserType.ADMIN)
+    @UseGuards(RolesGuard)
     getDashboardStats(@Query('lotId') lotId?: string) {
         return this.parkingSpotService.getDashboardStats(lotId);
     }
@@ -62,6 +69,8 @@ export class ParkingSpotController {
     }
 
     @Patch(':id')
+    @Roles(UserType.ADMIN)
+    @UseGuards(RolesGuard)
     update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() dto: UpdateParkingSpotDto,
@@ -70,6 +79,8 @@ export class ParkingSpotController {
     }
 
     @Patch(':id/status')
+    @Roles(UserType.ADMIN)
+    @UseGuards(RolesGuard)
     updateStatus(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() dto: UpdateStatusDto,
@@ -78,6 +89,8 @@ export class ParkingSpotController {
     }
 
     @Delete(':id')
+    @Roles(UserType.ADMIN)
+    @UseGuards(RolesGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     remove(@Param('id', ParseUUIDPipe) id: string) {
         return this.parkingSpotService.remove(id);

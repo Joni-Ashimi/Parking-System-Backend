@@ -6,7 +6,8 @@ import {
     Param,
     Patch,
     Post,
-    Query, Req,
+    Query,
+    Req,
     UploadedFile,
     UseGuards,
     UseInterceptors,
@@ -20,6 +21,9 @@ import {CurrentLoggedInUser} from "../decorator/current-user.decorator";
 import {CreateUserDto} from "../def/dto/user/CreateUserDto";
 import {UpdateUserDto} from "../def/dto/user/UpdateUserDto";
 import {FileInterceptor} from "@nestjs/platform-express";
+import {Roles} from "../decorator/roles.decorator";
+import {UserType} from "../def/enums/UserType";
+import {RolesGuard} from "../decorator/roles.guard";
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -57,39 +61,27 @@ export class UsersController {
     }
 
     @Delete(':id')
-    deleteUser(@Param('id') id: string ) {
+    deleteUser(@Param('id') id: string) {
         return this.usersService.deleteUser(id);
     }
 
     @Patch(':id/activate')
+    @Roles(UserType.ADMIN)
+    @UseGuards(RolesGuard)
     activateUser(@Param('id') id: string) {
         return this.usersService.activateUser(id);
     }
 
     @Patch(':id/ban')
+    @Roles(UserType.ADMIN)
+    @UseGuards(RolesGuard)
     banUser(@Param('id') id: string) {
         return this.usersService.banUser(id);
     }
 
-    @Post()
-    @UseGuards()
-    create(
-        @Body(
-            ValidationPipe.from(
-                Joi.object({
-                    name: Joi.string().required(),
-                    email: Joi.string().email().required(),
-                    password: Joi.string().required().min(8),
-                    confirmPassword: Joi.string().required().min(8),
-                }),
-            ),
-        )
-        createUser: CreateUserDto,
-    ) {
-        return this.usersService.create(createUser);
-    }
-
     @Get()
+    @Roles(UserType.ADMIN)
+    @UseGuards(RolesGuard)
     findUsers(
         @Query(
             ValidationPipe.from(
@@ -108,11 +100,15 @@ export class UsersController {
     }
 
     @Get('stats')
+    @Roles(UserType.ADMIN)
+    @UseGuards(RolesGuard)
     async getUserStats(): Promise<GlobalStatsDto> {
         return await this.usersService.getUsersStats();
     }
 
     @Get(':id')
+    @Roles(UserType.ADMIN)
+    @UseGuards(RolesGuard)
     findOne(@Param('id') id: string) {
         return this.usersService.findOne(id);
     }

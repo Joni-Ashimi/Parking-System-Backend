@@ -9,6 +9,7 @@ import {UserVerificationStatus} from "../def/enums/UserVerificationStatus";
 import {ViolationStatus} from "../def/enums/ViolationStatus";
 import {ViolationType} from "../def/enums/ViolationType";
 import {Violation} from "../entity/Violation";
+import {EmailService} from "../email/email.service";
 
 export interface GlobalStatsDto {
     total: number;
@@ -25,6 +26,7 @@ export class UsersService {
         private readonly usersRepository: Repository<User>,
         @InjectRepository(Violation)
         private readonly violationRepository: Repository<Violation>,
+        private readonly emailService: EmailService,
     ) {
     }
 
@@ -52,10 +54,8 @@ export class UsersService {
         return user;
     }
 
-    async create(createUser: CreateUserDto): Promise<User> {
-        const user = this.usersRepository.create({
-            ...createUser,
-        });
+    async create(createUser: Partial<User>): Promise<User> {
+        const user = this.usersRepository.create(createUser);
         return this.usersRepository.save(user);
     }
 
@@ -120,7 +120,9 @@ export class UsersService {
         const queryBuilder = this.usersRepository.createQueryBuilder('user');
 
         if (qs) {
-            queryBuilder.where('user.name ILike :qs OR user.email ILike :qs', {qs: `%${qs}%`});
+            queryBuilder.where('user.name ILike :qs ' +
+                'OR user.email ILike :qs' +
+                'OR user.phoneNumber ILike :qs', {qs: `%${qs}%`});
         }
         if (sortBy) {
             const normalizedOrder = (sortOrder?.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';
@@ -211,6 +213,14 @@ export class UsersService {
             {id: userId},
             {verificationStatus: UserVerificationStatus.VERIFIED},
         );
+
+        try {
+            await this.emailService.sendUserActivationNotice(user.email, {
+                name: user.name,
+            });
+        } catch (emailError) {
+            console.error(`Failed to send activation email to ${user.email}:`, emailError);
+        }
         return {message: `User ${userId} has been activated`};
     }
 
@@ -231,8 +241,17 @@ export class UsersService {
         };
 
         const violation = this.violationRepository.create(violationData);
-
         await this.violationRepository.save(violation);
+
+        try {
+            await this.emailService.sendUserBanEmail(user.email, {
+                reason: violationData.description,
+                penaltyAmount,
+            });
+        } catch (emailError) {
+            console.error(`Failed to send ban email to ${user.email}:`, emailError);
+        }
+
 
         return {message: `User ${user?.name} has been banned`};
     }

@@ -11,4 +11,4 @@ export const CurrentLoggedInUser = createParamDecorator(
 
         return data ? user[data] : user;
     },
-);
+);  

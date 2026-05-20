@@ -10,11 +10,14 @@ import {RequestPasswordDto} from "../def/dto/passwordReset/requestPasswordDto";
 import {EmailService} from "../email/email.service";
 import {ConfirmPasswordDto} from "../def/dto/passwordReset/confirmPasswordDto";
 import {InjectRepository} from "@nestjs/typeorm";
+import {UserType} from "../def/enums/UserType";
+import {User} from "../entity/User";
 
 type JwtPayload = {
     id: string;
     email: string;
     name: string;
+    type: UserType;
     tokenVersion: number;
 };
 
@@ -45,6 +48,7 @@ export class AuthService {
                 id: payload.id,
                 email: payload.email,
                 name: payload.name,
+                type: payload.type,
                 tokenVersion: payload.tokenVersion,
             },
             accessToken,
@@ -67,10 +71,13 @@ export class AuthService {
         const hashedPassword = await bcrypt.hash(createUser.password, 10);
 
         const user = await this.usersService.create({
-            ...createUser,
+            name: createUser.name,
+            email: createUser.email,
             password: hashedPassword,
-        });
-        const payload = {id: user.id, email: user.email, name: user.name, tokenVersion: user.tokenVersion};
+            phoneNumber: createUser.phoneNumber,
+            gender: createUser.gender as any,
+        } as Partial<User>);
+        const payload = {id: user.id, email: user.email, name: user.name, type: user.type, tokenVersion: user.tokenVersion};
         return this.generateUserWithToken(payload);
     }
 
@@ -82,6 +89,7 @@ export class AuthService {
             id: existingUser.id,
             email: existingUser.email,
             name: existingUser.name,
+            type: existingUser.type,
             tokenVersion: existingUser.tokenVersion,
         };
         await this.usersService.partialUpdate(existingUser?.id, {
@@ -112,6 +120,7 @@ export class AuthService {
                     id: user.id,
                     email: user.email,
                     name: user.name,
+                    type: user.type,
                     tokenVersion: user.tokenVersion,
                 },
                 {
@@ -125,6 +134,7 @@ export class AuthService {
                     id: user.id,
                     email: user.email,
                     name: user.name,
+                    type: user.type,
                     tokenVersion: user.tokenVersion,
                 },
             };
