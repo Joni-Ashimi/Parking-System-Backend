@@ -1,0 +1,16 @@
+<h2>Account Notice: Ban</h2>
+
+<p>Hello,</p>
+
+<p>Your account has been banned by an administrator due to a system policy violation.</p>
+
+{{#if reason}}
+    <p><strong>Reason specified:</strong> {{reason}}</p>
+{{/if}}
+
+{{#if penaltyAmount}}
+    <p><strong>Assessed Penalty Fine:</strong> ${{penaltyAmount}}</p>
+{{/if}}
+
+<hr />
+<p style="color: #666; font-size: 12px;">If you believe this action was taken in error, please contact support.</p>
