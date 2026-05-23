@@ -17,6 +17,7 @@ import {CloudinaryModule} from "./cloudinary/cloudinary.module";
 import {NotificationModule} from "./notifications/notifications.module";
 import {SpotCategoryModule} from "./spotCategory/spotCategory.module";
 import {PricingRuleModule} from "./pricingRule/pricingRule.module";
+import {ChatModule} from "./chat/chat.module";
 
 @Module({
     imports: [
@@ -36,6 +37,7 @@ import {PricingRuleModule} from "./pricingRule/pricingRule.module";
         NotificationModule,
         SpotCategoryModule,
         PricingRuleModule,
+        ChatModule,
     ],
     controllers: [AppController],
     providers: [AppService],
