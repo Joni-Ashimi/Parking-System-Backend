@@ -2,6 +2,7 @@ import {Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGe
 import {Vehicle} from "./Vehicle";
 import {UserType} from "../def/enums/UserType";
 import {UserVerificationStatus} from "../def/enums/UserVerificationStatus";
+import {Gender} from "../def/enums/UserGender";
 
 @Entity()
 export class User {
@@ -21,8 +22,12 @@ export class User {
     @Column({nullable: false, unique: true})
     phoneNumber: string;
 
-    @Column({nullable: true})
-    gender: 'MALE' | 'FEMALE'
+    @Column({
+        type: 'enum',
+        enum: Gender,
+        nullable: true,
+    })
+    gender: Gender;
 
     @Column({nullable: true, unique: true})
     email: string;
