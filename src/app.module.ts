@@ -18,6 +18,7 @@ import {NotificationModule} from "./notifications/notifications.module";
 import {SpotCategoryModule} from "./spotCategory/spotCategory.module";
 import {PricingRuleModule} from "./pricingRule/pricingRule.module";
 import {ChatModule} from "./chat/chat.module";
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
     imports: [
@@ -38,6 +39,7 @@ import {ChatModule} from "./chat/chat.module";
         SpotCategoryModule,
         PricingRuleModule,
         ChatModule,
+        FeedbackModule,
     ],
     controllers: [AppController],
     providers: [AppService],

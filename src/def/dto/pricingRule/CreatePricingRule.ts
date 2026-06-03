@@ -27,7 +27,7 @@ export class CreatePricingRuleDto {
     @IsOptional()
     @IsNumber()
     @Min(0)
-    @Max(23)
+    @Max(24)
     endHour?: number;
 
     @IsUUID()

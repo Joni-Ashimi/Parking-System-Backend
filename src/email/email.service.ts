@@ -52,4 +52,22 @@ export class EmailService {
             },
         });
     }
+    async sendFeedbackNotification(
+        to: string,
+        data: { userEmail: string; category: string; subject: string; message: string },
+    ) {
+        await this.mailerService.sendMail({
+            from: `"Parking App" <${process.env.TEST_EMAIL}>`,
+            to,
+            subject: `New Feedback: ${data.subject}`,
+            html: `
+                <h2>New Feedback Received</h2>
+                <p><strong>From:</strong> ${data.userEmail}</p>
+                <p><strong>Category:</strong> ${data.category}</p>
+                <p><strong>Subject:</strong> ${data.subject}</p>
+                <p><strong>Message:</strong></p>
+                <p>${data.message}</p>
+            `,
+        });
+    }
 }
