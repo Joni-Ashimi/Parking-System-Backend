@@ -1,11 +1,17 @@
-import {Body, Controller, Delete, Get, Param, Patch, Post,} from "@nestjs/common";
+import {Body, Controller, Delete, Get, Param, Patch, Post, Query,} from "@nestjs/common";
 import {ViolationsService} from "./violation.service";
 import {CreateViolationDto} from "../def/dto/violation/CreateViolationDto";
 import {UpdateViolationDto} from "../def/dto/violation/UpdateViolationDto";
+import {ViolationsQuery} from "../def/pagination-query";
 
 @Controller("violations")
 export class ViolationsController {
     constructor(private readonly service: ViolationsService) {
+    }
+
+    @Get('stats')
+    getStats() {
+        return this.service.getStats();
     }
 
     @Post()
@@ -14,8 +20,8 @@ export class ViolationsController {
     }
 
     @Get()
-    findAll() {
-        return this.service.findAll();
+    findAll(@Query() query: ViolationsQuery) {
+        return this.service.findAll(query);
     }
 
     @Get(":id")

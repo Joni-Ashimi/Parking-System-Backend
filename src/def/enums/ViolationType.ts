@@ -1,7 +1,5 @@
 export enum ViolationType {
-    OVERSTAY = "overstay",
-    UNPAID = "unpaid",
     FRAUD = "fraud",
+    OVERSTAY = "overstay",
     OTHER = "other",
-    ADMIN_ACTION = "admin_action",
 }

@@ -1,28 +1,56 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, ParseUUIDPipe, HttpCode, HttpStatus, UseGuards, UploadedFiles, UseInterceptors } from '@nestjs/common';
-import { FeedbackService } from './feedback.service';
-import { CreateFeedbackDto } from '../def/dto/feedback/CreateFeedbackDto';
-import { CurrentLoggedInUser } from '../decorator/current-user.decorator';
-import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Param,
+    ParseUUIDPipe,
+    Patch,
+    Post,
+    Query,
+    UploadedFiles,
+    UseGuards,
+    UseInterceptors
+} from '@nestjs/common';
+import {FeedbackService} from './feedback.service';
+import {CreateFeedbackDto} from '../def/dto/feedback/CreateFeedbackDto';
+import {CurrentLoggedInUser} from '../decorator/current-user.decorator';
+import {JwtAuthGuard} from '../auth/guard/jwt-auth.guard';
+import {FilesInterceptor} from '@nestjs/platform-express';
 
 @Controller('feedback')
 @UseGuards(JwtAuthGuard)
 export class FeedbackController {
-    constructor(private readonly feedbackService: FeedbackService) {}
+    constructor(private readonly feedbackService: FeedbackService) {
+    }
 
     @Post()
     @UseInterceptors(FilesInterceptor('photos', 5))
-    create(
+    async createFeedback(
         @CurrentLoggedInUser() user: { id: string },
-        @Body() dto: CreateFeedbackDto,
+        @Body() createFeedbackDto: CreateFeedbackDto,
         @UploadedFiles() files: Express.Multer.File[],
     ) {
-        return this.feedbackService.create(user.id, dto, files);
+        return this.feedbackService.create(user.id, createFeedbackDto, files);
     }
 
     @Get()
-    findAll() {
-        return this.feedbackService.findAll();
+    async findAll(
+        @Query('page') page?: string,
+        @Query('pageSize') pageSize?: string,
+        @Query('qs') qs?: string,
+        @Query('sortBy') sortBy?: string,
+        @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
+    ) {
+        return this.feedbackService.findAll({
+            page: page ? Number(page) : 1,
+            pageSize: pageSize ? Number(pageSize) : 10,
+            qs,
+            sortBy,
+            sortOrder,
+        });
     }
 
     @Get('my-feedback')

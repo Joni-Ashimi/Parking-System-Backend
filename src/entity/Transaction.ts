@@ -20,10 +20,13 @@ export class Transaction {
     @CreateDateColumn()
     createdAt: Date;
 
+    @CreateDateColumn()
+    updatedAt: Date;
+
     @Column({nullable: true, type: 'timestamp'})
     cancelledAt?: Date;
 
-    @OneToOne(() => ParkingSession, (parkingSession) => parkingSession.transaction, {
+    @OneToOne(() => ParkingSession, (parkingSession) => parkingSession. transaction, {
         onDelete: 'SET NULL',
         nullable: true,
     })
@@ -39,6 +42,6 @@ export class Transaction {
     @Column({type: 'decimal'})
     finalAmount: number;
 
-    @Column({type: 'timestamp'})
+    @Column({type: 'timestamp', nullable: true})
     paymentConfirmedAt?: Date;
 }

@@ -1,3 +1,5 @@
+import {ViolationStatus} from "./enums/ViolationStatus";
+
 export type PaginationQuery = {
     qs?: string;
     page: number;
@@ -6,16 +8,19 @@ export type PaginationQuery = {
     sortOrder?: 'ASC' | 'DESC';
 };
 
-export interface FindAuctionsOptions extends PaginationQuery {
-    status?: any;
-    sellerId?: string;
-    bidderId?: string;
-    relations?: string[];
-}
-
 export interface FindTransactionsOptions extends PaginationQuery {
     status?: any;
     bidderId?: string;
     merchantId?: string;
     relations?: string[];
+}
+
+export class ViolationsQuery {
+    page?: number;
+    pageSize?: number;
+    qs?: string;
+    sortBy?: string;
+    sortOrder?: "ASC" | "DESC";
+    status?: ViolationStatus;
+    type?: string;
 }

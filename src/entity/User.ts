@@ -3,6 +3,8 @@ import {Vehicle} from "./Vehicle";
 import {UserType} from "../def/enums/UserType";
 import {UserVerificationStatus} from "../def/enums/UserVerificationStatus";
 import {Gender} from "../def/enums/UserGender";
+import {Card} from "./Card";
+import {ParkingSession} from "./ParkingSession";
 
 @Entity()
 export class User {
@@ -58,4 +60,12 @@ export class User {
 
     @OneToMany(() => Vehicle, (vehicle) => vehicle.user)
     vehicles: Vehicle[];
+
+    @OneToMany(() => Card, (creditCard) => creditCard.user, {
+        onDelete: 'SET NULL',
+    })
+    creditCards: Card[];
+
+    @OneToMany(() => ParkingSession, (parkingSession) => parkingSession.user)
+    parkingSessions: ParkingSession[];
 }

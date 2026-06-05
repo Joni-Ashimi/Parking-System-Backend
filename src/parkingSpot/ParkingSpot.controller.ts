@@ -39,6 +39,8 @@ export class ParkingSpotController {
         return this.parkingSpotService.findAllForMap();
     }
 
+
+
     @Post()
     @Roles(UserType.ADMIN)
     @UseGuards(RolesGuard)

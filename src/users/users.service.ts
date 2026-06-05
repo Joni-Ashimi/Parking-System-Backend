@@ -3,7 +3,6 @@ import {InjectRepository} from '@nestjs/typeorm';
 import {Repository} from 'typeorm';
 import {User} from "../entity/User";
 import {PaginationQuery} from "../def/pagination-query";
-import {CreateUserDto} from "../def/dto/user/CreateUserDto";
 import {UpdateUserDto} from "../def/dto/user/UpdateUserDto";
 import {UserVerificationStatus} from "../def/enums/UserVerificationStatus";
 import {ViolationStatus} from "../def/enums/ViolationStatus";
@@ -213,6 +212,14 @@ export class UsersService {
             {id: userId},
             {verificationStatus: UserVerificationStatus.VERIFIED},
         );
+        const violation = await this.violationRepository.findOne({where: {user: {id: userId}}});
+        if (violation) {
+            await this.violationRepository.update(violation.id, {
+                status: ViolationStatus.RESOLVED,
+                updatedAt: new Date(),
+                resolvedAt: new Date(),
+            });
+        }
 
         try {
             await this.emailService.sendUserActivationNotice(user.email, {
@@ -224,7 +231,8 @@ export class UsersService {
         return {message: `User ${userId} has been activated`};
     }
 
-    async banUser(userId: string, reason?: string, penaltyAmount?: number) {
+    async banUser(userId: string, reason?: string, penaltyAmount?: number, violationType?: ViolationType) {
+        console.log("type: ", violationType);
         const user = await this.getUser(userId);
         if (!user) throw new NotFoundException(`User with Id: ${userId} not found!`);
         await this.usersRepository.update(
@@ -233,8 +241,8 @@ export class UsersService {
         );
 
         const violationData: Partial<Violation> = {
-            userId: user.id,
-            type: ViolationType.OTHER,
+            user: {id: user.id} as any,
+            type: violationType ?? ViolationType.OTHER,
             description: reason || 'User was banned by administrator',
             penaltyAmount,
             status: ViolationStatus.PENDING,

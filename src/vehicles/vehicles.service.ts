@@ -112,6 +112,14 @@ export class VehicleService {
         return this.vehicleRepo.save(vehicle);
     }
 
+    async getDefaultVehicle(userId: string) {
+        const vehicle = await this.vehicleRepo.findOne({
+            where: { user: { id: userId }, isDefault: true },
+        });
+        if (!vehicle) throw new NotFoundException('No default vehicle set');
+        return vehicle;
+    }
+
     async remove(id: string) {
         const result = await this.vehicleRepo.softDelete(id);
 

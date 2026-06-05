@@ -1,15 +1,17 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Patch,
-    Delete,
     Body,
-    Param,
-    Query,
-    ParseUUIDPipe,
+    Controller,
+    Delete,
+    Get,
     HttpCode,
-    HttpStatus, UseGuards, UnauthorizedException,
+    HttpStatus,
+    Param,
+    ParseUUIDPipe,
+    Patch,
+    Post,
+    Query,
+    UnauthorizedException,
+    UseGuards,
 } from '@nestjs/common';
 import {VehicleService} from "./vehicles.service";
 import {CreateVehicleDto} from "../def/dto/vehicles/CreateVehicleDto";
@@ -21,7 +23,8 @@ import {JwtAuthGuard} from "../auth/guard/jwt-auth.guard";
 @Controller('vehicles')
 @UseGuards(JwtAuthGuard)
 export class VehicleController {
-    constructor(private readonly vehicleService: VehicleService) {}
+    constructor(private readonly vehicleService: VehicleService) {
+    }
 
     @Get('my-vehicles')
     getMyVehicles(@CurrentLoggedInUser() user: { id: string }) {
@@ -31,9 +34,10 @@ export class VehicleController {
         return this.vehicleService.findMyVehicles(user.id);
     }
 
-    @Post()
-    create(@Body() dto: CreateVehicleDto) {
-        return this.vehicleService.create(dto);
+    @Get('default')
+    @UseGuards(JwtAuthGuard)
+    getDefaultVehicle(@CurrentLoggedInUser('id') userId: string) {
+        return this.vehicleService.getDefaultVehicle(userId);
     }
 
     @Patch(':id/default')
@@ -67,4 +71,10 @@ export class VehicleController {
     remove(@Param('id', ParseUUIDPipe) id: string) {
         return this.vehicleService.remove(id);
     }
+
+    @Post()
+    create(@Body() dto: CreateVehicleDto) {
+        return this.vehicleService.create(dto);
+    }
+
 }

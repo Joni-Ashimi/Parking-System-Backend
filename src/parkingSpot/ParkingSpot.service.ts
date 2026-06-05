@@ -25,7 +25,6 @@ export class ParkingSpotService {
     async create(dto: CreateParkingSpotDto): Promise<ParkingSpot> {
         const cleanSpotNumber = dto.spotNumber.trim();
 
-        // 1. Validate spot format and isolate the row early
         const parts = cleanSpotNumber.split('-');
         const targetRow = parts[0].trim().toUpperCase();
 
@@ -175,13 +174,78 @@ export class ParkingSpotService {
     }
 
     async findAllForMap() {
-        return this.dataSource.getRepository(ParkingSpot).find({
-            select: ['id', 'spotNumber', 'floor', 'status'],
-            order: {
-                floor: 'ASC',
-                spotNumber: 'ASC',
-            },
+        const spots = await this.dataSource.getRepository(ParkingSpot).find({
+            relations: ['type', 'type.rules', 'lot'],  // ← the line you asked about
+            order: {floor: 'ASC', spotNumber: 'ASC'},
         });
+
+        const now = new Date();
+
+        return spots.map(spot => {
+            const type = spot.type;
+            let effectiveHourlyRate = Number(type?.baseHourlyRate ?? 0);
+            let activeRuleName: string | null = null;
+
+            if (type?.rules?.length) {
+                const activeRule = type.rules.find(rule => {
+                    const matchesDay = rule.dayOfWeek === null || rule.dayOfWeek === now.getDay();
+                    const matchesHour = rule.startHour === null ||
+                        (now.getHours() >= rule.startHour && now.getHours() < rule.endHour);
+                    return matchesDay && matchesHour;
+                });
+                if (activeRule) {
+                    const val = Number(activeRule.value);
+                    effectiveHourlyRate = Number((activeRule.adjustmentType === 'DISCOUNT'
+                        ? effectiveHourlyRate * (1 - val / 100)
+                        : effectiveHourlyRate * (1 + val / 100)).toFixed(2));
+                    activeRuleName = activeRule.name;
+                }
+            }
+
+            return {
+                id: spot.id,
+                spotNumber: spot.spotNumber,
+                floor: spot.floor,
+                status: spot.status,
+                type: type ? {
+                    id: type.id,
+                    name: type.name,
+                    size: type.size,
+                    baseHourlyRate: Number(type.baseHourlyRate),
+                    effectiveHourlyRate,
+                    isDiscounted: effectiveHourlyRate < Number(type.baseHourlyRate),
+                    activeRuleName,
+                } : null,
+                lot: spot.lot ? {id: spot.lot.id, name: spot.lot.name} : null,
+            };
+        });
+    }
+
+    private computeEffectiveRate(type: SpotCategory): number {
+        const now = new Date();
+        const activeRule = type.rules?.find(rule => {
+            const matchesDay = rule.dayOfWeek === null || rule.dayOfWeek === now.getDay();
+            const matchesHour = rule.startHour === null ||
+                (now.getHours() >= rule.startHour && now.getHours() < rule.endHour);
+            return matchesDay && matchesHour;
+        });
+        const base = Number(type.baseHourlyRate);
+        if (!activeRule) return base;
+        const val = Number(activeRule.value);
+        return Number((activeRule.adjustmentType === 'DISCOUNT'
+            ? base * (1 - val / 100)
+            : base * (1 + val / 100)).toFixed(2));
+    }
+
+    private getActiveRuleName(type: SpotCategory): string | null {
+        const now = new Date();
+        const rule = type.rules?.find(rule => {
+            const matchesDay = rule.dayOfWeek === null || rule.dayOfWeek === now.getDay();
+            const matchesHour = rule.startHour === null ||
+                (now.getHours() >= rule.startHour && now.getHours() < rule.endHour);
+            return matchesDay && matchesHour;
+        });
+        return rule?.name ?? null;
     }
 
     async getDashboardStats(lotId?: string) {

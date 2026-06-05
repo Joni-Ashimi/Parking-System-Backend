@@ -3,21 +3,23 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    Index,
+    JoinColumn,
+    ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn
 } from "typeorm";
 import {ViolationType} from "../def/enums/ViolationType";
 import {ViolationStatus} from "../def/enums/ViolationStatus";
+import {User} from "./User";
 
 @Entity("violations")
 export class Violation {
     @PrimaryGeneratedColumn("uuid")
     id: string;
 
-    @Column()
-    @Index()
-    userId: string;
+    @ManyToOne(() => User, {nullable: true, eager: false})
+    @JoinColumn({name: "userId"})
+    user?: User;
 
     @Column({
         type: "enum",
@@ -28,7 +30,7 @@ export class Violation {
     @Column("text")
     description: string;
 
-    @Column("decimal", { precision: 10, scale: 2, nullable: true })
+    @Column("decimal", {precision: 10, scale: 2, nullable: true})
     penaltyAmount: number;
 
     @Column({
@@ -43,6 +45,9 @@ export class Violation {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @UpdateDateColumn()
+    resolvedAt: Date;
 
     @DeleteDateColumn()
     deletedAt?: Date;

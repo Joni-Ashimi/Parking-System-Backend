@@ -19,6 +19,11 @@ import {SpotCategoryModule} from "./spotCategory/spotCategory.module";
 import {PricingRuleModule} from "./pricingRule/pricingRule.module";
 import {ChatModule} from "./chat/chat.module";
 import { FeedbackModule } from './feedback/feedback.module';
+import {CardsModule} from "./cards/cards.module";
+import {PokApiModule} from "./external/pok-api.module";
+import {TransactionsModule} from "./transactions/transactions.module";
+import {ParkingSessionModule} from "./parkingSession/parkingSession.module";
+import {DashboardModule} from "./dashboard/dashboard.module";
 
 @Module({
     imports: [
@@ -39,6 +44,11 @@ import { FeedbackModule } from './feedback/feedback.module';
         SpotCategoryModule,
         PricingRuleModule,
         ChatModule,
+        CardsModule,
+        PokApiModule,
+        TransactionsModule,
+        ParkingSessionModule,
+        DashboardModule,
         FeedbackModule,
     ],
     controllers: [AppController],

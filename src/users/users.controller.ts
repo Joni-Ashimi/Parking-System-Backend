@@ -5,7 +5,6 @@ import {
     Get,
     Param,
     Patch,
-    Post,
     Query,
     Req,
     UploadedFile,
@@ -18,12 +17,12 @@ import {JwtAuthGuard} from "../auth/guard/jwt-auth.guard";
 import {ValidationPipe} from 'src/pipes/joi-validator.pipe';
 import Joi from "joi";
 import {CurrentLoggedInUser} from "../decorator/current-user.decorator";
-import {CreateUserDto} from "../def/dto/user/CreateUserDto";
 import {UpdateUserDto} from "../def/dto/user/UpdateUserDto";
 import {FileInterceptor} from "@nestjs/platform-express";
 import {Roles} from "../decorator/roles.decorator";
 import {UserType} from "../def/enums/UserType";
 import {RolesGuard} from "../decorator/roles.guard";
+import {ViolationType} from "../def/enums/ViolationType";
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -75,8 +74,16 @@ export class UsersController {
     @Patch(':id/ban')
     @Roles(UserType.ADMIN)
     @UseGuards(RolesGuard)
-    banUser(@Param('id') id: string) {
-        return this.usersService.banUser(id);
+    banUser(
+        @Param('id') id: string,
+        @Body() body: { reason?: string, penaltyAmount?: number, violationType?: ViolationType }
+    ) {
+        return this.usersService.banUser(
+            id,
+            body.reason,
+            body.penaltyAmount,
+            body.violationType
+        );
     }
 
     @Get()

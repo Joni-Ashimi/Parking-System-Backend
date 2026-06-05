@@ -10,7 +10,7 @@ import {Notification} from "./entity/Notification";
 import {PasswordReset} from "./entity/PasswordReset";
 import {SpotCategory} from "./entity/SpotCategory";
 import {PricingRule} from "./entity/PricingRule";
-import { Feedback } from './feedback/feedback.entity';
+import {Feedback} from "./entity/Feedback";
 dotenv.config();
 
 export const AppDataSource = new DataSource({
