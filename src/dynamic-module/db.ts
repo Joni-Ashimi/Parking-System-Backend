@@ -8,7 +8,8 @@ export const DB = TypeOrmModule.forRoot({
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
-    entities: [__dirname + '/../entity/*{.ts,.js}'],
+    entities: [__dirname + '/../entity/*{.ts,.js}',
+        __dirname + '/../feedback/*.entity{.ts,.js}'],
     migrations: [join(__dirname, '../**/migrations/*{.ts,.js}')],
     synchronize: true,
 });
