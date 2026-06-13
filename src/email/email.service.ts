@@ -1,71 +1,48 @@
-import {Injectable} from '@nestjs/common';
-import {MailerService} from '@nestjs-modules/mailer';
+import {Injectable} from "@nestjs/common";
+import {MailerService} from "@nestjs-modules/mailer";
 
 @Injectable()
 export class EmailService {
     constructor(private readonly mailerService: MailerService) {
     }
 
-    sendPasswordRequestCode(
-        to: string,
-        data: { email: string, code: string },
-    ) {
-        this.mailerService.sendMail({
+    sendPasswordRequestCode(to: string, data: { email: string; code: string }) {
+        return this.mailerService.sendMail({
             from: `"Parking App" <${process.env.TEST_EMAIL}>`,
             to,
             subject: `Your password reset code`,
             template: 'resetPassword',
-            context: {
-                email: data.email,
-                code: data.code,
-            },
+            context: {email: data.email, code: data.code},
         });
     }
 
-    sendUserBanEmail(
-        to: string,
-        data: { reason?: string; penaltyAmount?: number },
-    ) {
-        try {
-            this.mailerService.sendMail({
-                from: `"Parking App" <${process.env.TEST_EMAIL}>`,
-                to,
-                subject: `Important Notice: Your account has been banned`,
-                template: 'banEmail',
-                context: {
-                    reason: data.reason,
-                    penaltyAmount: data.penaltyAmount,
-                },
-            });
-        } catch (err) {
-            console.error('Error sending ban email:', err);
-        }
+    sendUserBanEmail(to: string, data: { reason?: string; penaltyAmount?: number }) {
+        return this.mailerService.sendMail({
+            from: `"Parking App" <${process.env.TEST_EMAIL}>`,
+            to,
+            subject: `Important Notice: Your account has been banned`,
+            template: 'banEmail',
+            context: {reason: data.reason, penaltyAmount: data.penaltyAmount},
+        });
     }
 
-    sendUserActivationNotice(
-        to: string,
-        data: { name: string },
-    ) {
-        try {
-            this.mailerService.sendMail({
-                from: `"Parking App" <${process.env.TEST_EMAIL}>`,
-                to,
-                subject: `Your account has been activated!`,
-                template: 'activateUser',
-                context: {
-                    name: data.name,
-                },
-            });
-        } catch (err) {
-            console.error('Error sending user activation notice:', err);
-        }
+    sendUserActivationNotice(to: string, data: { name: string }) {
+        return this.mailerService.sendMail({
+            from: `"Parking App" <${process.env.TEST_EMAIL}>`,
+            to,
+            subject: `Your account has been activated!`,
+            template: 'activateUser',
+            context: {name: data.name},
+        });
     }
 
-    sendFeedbackNotification(
-        to: string,
-        data: { userEmail: string; category: string; subject: string; message: string },
-    ) {
-        this.mailerService.sendMail({
+    sendFeedbackNotification(to: string, data: {
+        userEmail: string;
+        category: string;
+        subject: string;
+        message: string
+    }) {
+        return this.mailerService.sendMail({
             from: `"Parking App" <${process.env.TEST_EMAIL}>`,
             to,
             subject: `New Feedback: ${data.subject}`,

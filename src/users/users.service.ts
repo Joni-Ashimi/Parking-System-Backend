@@ -258,7 +258,7 @@ export class UsersService {
         await this.violationRepository.save(violation);
 
         try {
-            this.emailService.sendUserBanEmail(user.email, {
+            await this.emailService.sendUserBanEmail(user.email, {
                 reason: violationData.description,
                 penaltyAmount,
             });
