@@ -9,7 +9,7 @@ import {Vehicle} from "../entity/Vehicle";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([ParkingSession, ParkingSpot, Vehicle]),
+        TypeOrmModule.forFeature([ParkingSession, ParkingSpot, Vehicle, ParkingSpot]),
         TransactionsModule,
     ],
     controllers: [ParkingSessionController],

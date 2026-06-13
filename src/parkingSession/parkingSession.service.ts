@@ -10,6 +10,7 @@ import {ParkingSessionStatus} from '../def/enums/ParkingSessionStatus';
 import {VehicleType} from '../def/enums/VehicleType';
 import {ParkingSpotStatus} from "../def/enums/ParkingSpotStatus";
 import {ActiveSessionsParams} from "../def/dto/ActiveSessionParams.dto";
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class ParkingSessionService {
@@ -17,7 +18,9 @@ export class ParkingSessionService {
         @InjectRepository(ParkingSession) private sessionRepo: Repository<ParkingSession>,
         @InjectRepository(ParkingSpot) private spotRepo: Repository<ParkingSpot>,
         @InjectRepository(Vehicle) private vehicleRepo: Repository<Vehicle>,
+        @InjectRepository(ParkingSpot) private readonly parkingSpotRepo: Repository<ParkingSpot>,
         private readonly transactionsService: TransactionsService,
+        private readonly dataSource: DataSource,
     ) {
     }
 
@@ -68,6 +71,7 @@ export class ParkingSessionService {
             );
         }
 
+        await this.spotRepo.update(spotId, {status: ParkingSpotStatus.OCCUPIED, updatedAt: new Date()});
         const session = this.sessionRepo.create({
             spot: {id: spotId},
             user: {id: userId},
@@ -79,26 +83,37 @@ export class ParkingSessionService {
     }
 
     async endSession(sessionId: string): Promise<Transaction> {
-        const session = await this.sessionRepo
-            .createQueryBuilder('session')
-            .leftJoinAndSelect('session.spot', 'spot')
-            .leftJoinAndSelect('spot.type', 'type')
-            .leftJoinAndSelect('type.rules', 'rules')
-            .where('session.id = :sessionId', {sessionId})
-            .getOne();
+        return this.dataSource.transaction(async (manager) => {
+            const session = await this.sessionRepo
+                .createQueryBuilder('session')
+                .leftJoinAndSelect('session.spot', 'spot')
+                .leftJoinAndSelect('spot.type', 'type')
+                .leftJoinAndSelect('type.rules', 'rules')
+                .where('session.id = :sessionId', {sessionId})
+                .getOne();
 
-        if (!session) throw new NotFoundException('Session not found');
+            if (!session) throw new NotFoundException('Session not found');
 
-        session.exitTime = new Date();
-        session.price = this.calculatePrice(session.spot, session.entryTime, session.exitTime);
-        session.status = ParkingSessionStatus.COMPLETED;
-        await this.sessionRepo.save(session);
+            session.exitTime = new Date();
+            session.price = this.calculatePrice(session.spot, session.entryTime, session.exitTime);
 
-        return this.transactionsService.createParkingTransaction({
-            amount: session.price,
-            sessionId: session.id,
-            currency: 'EUR',
-        });
+            const pokTransaction = await this.transactionsService.createParkingTransaction({
+                amount: session.price,
+                sessionId: session.id,
+                currency: 'EUR',
+            });
+
+            return this.dataSource.transaction(async (manager) => {
+                session.status = ParkingSessionStatus.COMPLETED;
+                await manager.save(session);
+
+                await manager.update(ParkingSpot, session.spot.id, {
+                    status: ParkingSpotStatus.AVAILABLE,
+                });
+
+                return pokTransaction;
+            });
+        })
     }
 
     async getActiveSession(userId: string) {
