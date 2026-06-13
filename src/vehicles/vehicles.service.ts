@@ -32,8 +32,22 @@ export class VehicleService {
             throw new ConflictException('Vehicle with this plate already exists');
         }
 
+        const hasVehicles = await this.vehicleRepo.count({
+            where: {user: {id: dto.userId}, deletedAt: IsNull()},
+        });
+
+        const isDefault = hasVehicles === 0;
+
+        if (isDefault) {
+            await this.vehicleRepo.update(
+                {user: {id: dto.userId}, isDefault: true},
+                {isDefault: false},
+            );
+        }
+
         const vehicle = this.vehicleRepo.create({
             ...dto,
+            isDefault,
             user,
         });
 
@@ -94,7 +108,7 @@ export class VehicleService {
         const vehicle = await this.vehicleRepo.findOne({
             where: {
                 id: vehicleId,
-                user: { id: userId },
+                user: {id: userId},
                 deletedAt: IsNull(),
             },
         });
@@ -104,8 +118,8 @@ export class VehicleService {
         }
 
         await this.vehicleRepo.update(
-            { user: { id: userId }, isDefault: true },
-            { isDefault: false }
+            {user: {id: userId}, isDefault: true},
+            {isDefault: false}
         );
 
         vehicle.isDefault = true;
@@ -114,7 +128,7 @@ export class VehicleService {
 
     async getDefaultVehicle(userId: string) {
         const vehicle = await this.vehicleRepo.findOne({
-            where: { user: { id: userId }, isDefault: true },
+            where: {user: {id: userId}, isDefault: true},
         });
         if (!vehicle) throw new NotFoundException('No default vehicle set');
         return vehicle;
