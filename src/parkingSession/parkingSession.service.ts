@@ -1,6 +1,6 @@
-import {BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
+import {BadRequestException, ForbiddenException, Injectable, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
-import {Repository} from 'typeorm';
+import {DataSource, Repository} from 'typeorm';
 import {ParkingSession} from '../entity/ParkingSession';
 import {ParkingSpot} from '../entity/ParkingSpot';
 import {Vehicle} from '../entity/Vehicle';
@@ -10,7 +10,8 @@ import {ParkingSessionStatus} from '../def/enums/ParkingSessionStatus';
 import {VehicleType} from '../def/enums/VehicleType';
 import {ParkingSpotStatus} from "../def/enums/ParkingSpotStatus";
 import {ActiveSessionsParams} from "../def/dto/ActiveSessionParams.dto";
-import { DataSource } from 'typeorm';
+import {User} from "../entity/User";
+import {UserVerificationStatus} from "../def/enums/UserVerificationStatus";
 
 @Injectable()
 export class ParkingSessionService {
@@ -18,7 +19,7 @@ export class ParkingSessionService {
         @InjectRepository(ParkingSession) private sessionRepo: Repository<ParkingSession>,
         @InjectRepository(ParkingSpot) private spotRepo: Repository<ParkingSpot>,
         @InjectRepository(Vehicle) private vehicleRepo: Repository<Vehicle>,
-        @InjectRepository(ParkingSpot) private readonly parkingSpotRepo: Repository<ParkingSpot>,
+        @InjectRepository(User) private readonly userRepo: Repository<User>,
         private readonly transactionsService: TransactionsService,
         private readonly dataSource: DataSource,
     ) {
@@ -69,6 +70,25 @@ export class ParkingSessionService {
             throw new BadRequestException(
                 `Your vehicle type (${vehicle.type}) is not compatible with this spot size (${spot.type.size}).`
             );
+        }
+
+        const user = await this.userRepo.findOne({where: {id: userId}});
+        if (!user) throw new NotFoundException('User not found')
+
+        if (user.verificationStatus != UserVerificationStatus.VERIFIED && user.bannedUntil && user.bannedUntil > new Date()) {
+            const now = new Date();
+            const msRemaining = user.bannedUntil.getTime() - now.getTime();
+            const daysRemaining = Math.ceil(msRemaining / (1000 * 60 * 60 * 24));
+            throw new ForbiddenException(
+                `Your account is banned. You cannot reserve a parking spot for another ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}.`
+            );
+        }
+
+        const activeSession = await this.sessionRepo.findOne({
+            where: {user: {id: userId}, status: ParkingSessionStatus.ACTIVE},
+        });
+        if (activeSession) {
+            throw new BadRequestException('You already have an active parking session. Please end it before reserving a new spot.');
         }
 
         await this.spotRepo.update(spotId, {status: ParkingSpotStatus.OCCUPIED, updatedAt: new Date()});

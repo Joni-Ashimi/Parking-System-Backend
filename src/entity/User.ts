@@ -55,6 +55,9 @@ export class User {
     @Column({type: "enum", enum: UserVerificationStatus, default: UserVerificationStatus.PENDING})
     verificationStatus: UserVerificationStatus
 
+    @Column({ nullable: true })
+    bannedUntil?: Date;
+
     @Column({type: 'text', nullable: true})
     profileImageUrl?: string | null;
 

@@ -6,10 +6,11 @@ import {ParkingSessionService} from "./parkingSession.service";
 import {ParkingSessionController} from "./parkingSession.controller";
 import {ParkingSpot} from "../entity/ParkingSpot";
 import {Vehicle} from "../entity/Vehicle";
+import {User} from "../entity/User";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([ParkingSession, ParkingSpot, Vehicle, ParkingSpot]),
+        TypeOrmModule.forFeature([ParkingSession, ParkingSpot, Vehicle, User]),
         TransactionsModule,
     ],
     controllers: [ParkingSessionController],
