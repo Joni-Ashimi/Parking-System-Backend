@@ -38,7 +38,8 @@ export class ViolationsService {
             .where("violation.deletedAt IS NULL");
 
         if (status) {
-            qb.andWhere("violation.status = :status", {status});
+            const statusValue = String(status).toLowerCase();
+            qb.andWhere("violation.status = :status", { status: statusValue });
         }
 
         if (type) {
