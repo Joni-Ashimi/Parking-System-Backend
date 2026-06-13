@@ -232,7 +232,6 @@ export class UsersService {
     }
 
     async banUser(userId: string, reason?: string, penaltyAmount?: number, violationType?: ViolationType) {
-        console.log("type: ", violationType);
         const user = await this.getUser(userId);
         if (!user) throw new NotFoundException(`User with Id: ${userId} not found!`);
         await this.usersRepository.update(
@@ -252,6 +251,7 @@ export class UsersService {
         await this.violationRepository.save(violation);
 
         try {
+            console.log('calling email service');
             await this.emailService.sendUserBanEmail(user.email, {
                 reason: violationData.description,
                 penaltyAmount,
