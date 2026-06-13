@@ -24,7 +24,7 @@ export class ParkingSessionService {
     private isVehicleCompatible(vehicleType: VehicleType, spotSize: string): boolean {
         const map: Record<string, VehicleType[]> = {
             small: [VehicleType.MOTORCYCLE],
-            medium: [VehicleType.CAR],
+            standard: [VehicleType.CAR],
             large: [VehicleType.TRUCK, VehicleType.BUS],
         };
         return map[spotSize.toLowerCase()]?.includes(vehicleType) ?? false;
@@ -181,7 +181,7 @@ export class ParkingSessionService {
                 "session.id", "session.entryTime", "session.status", "session.price",
                 "user.name", "vehicle.plateNumber", "spot.spotNumber"
             ])
-            .where("session.status = :status", { status: ParkingSessionStatus.ACTIVE })
+            .where("session.status = :status", {status: ParkingSessionStatus.ACTIVE})
 
         if (qs) {
             query.andWhere(
