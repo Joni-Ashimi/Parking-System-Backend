@@ -79,6 +79,10 @@ export class UsersService {
         return user;
     }
 
+    async findByPhone(phoneNumber: string) {
+        return this.usersRepository.findOne({where: {phoneNumber}});
+    }
+
     async partialUpdate(id: string, updateUser: UpdateUserDto): Promise<User> {
         const user = await this.getUser(id);
         if (updateUser.email && updateUser.email !== user.email) {

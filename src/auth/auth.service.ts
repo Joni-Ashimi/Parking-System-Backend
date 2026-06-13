@@ -1,4 +1,10 @@
-import {BadRequestException, Injectable, NotFoundException, UnauthorizedException,} from '@nestjs/common';
+import {
+    BadRequestException,
+    ConflictException,
+    Injectable,
+    NotFoundException,
+    UnauthorizedException,
+} from '@nestjs/common';
 import {JwtService} from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import {ConfigService} from '@nestjs/config';
@@ -62,6 +68,11 @@ export class AuthService {
         );
         if (existingUser) {
             throw new BadRequestException('Email already exists');
+        }
+
+        const existingPhone = await this.usersService.findByPhone(createUser.phoneNumber).catch(() => null);
+        if (existingPhone) {
+            throw new ConflictException('Phone number is already registered.');
         }
 
         if (createUser.password !== createUser.confirmPassword) {
