@@ -16,12 +16,17 @@ export class DashboardService {
     }
 
     async getDashboardStats() {
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
         const totalUsers = await this.userRepo.count();
         const activeSessions = await this.sessionRepo.count({where: {status: ParkingSessionStatus.ACTIVE}});
         const totalSpots = await this.spotRepo.count();
         const revenue = await this.sessionRepo.createQueryBuilder('s')
             .select('SUM(s.price)', 'total')
-            .where('s.status = :status', {status: 'completed'})
+            .where('s.status = :status', { status: 'completed' })
+            .andWhere('s.entryTime BETWEEN :start AND :end', { start: startOfDay, end: endOfDay })
             .getRawOne();
 
         return {
