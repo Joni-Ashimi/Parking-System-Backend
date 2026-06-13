@@ -62,7 +62,7 @@ export class ParkingSessionController {
     }
 
     @Post(':id/end')
-    @UseGuards(JwtAuthGuard, BannedUserGuard)
+    @UseGuards(JwtAuthGuard)
     async endSession(
         @Param('id') sessionId: string,
         @CurrentLoggedInUser('id') userId: string,

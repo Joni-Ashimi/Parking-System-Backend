@@ -226,7 +226,7 @@ export class UsersService {
         }
 
         try {
-            await this.emailService.sendUserActivationNotice(user.email, {
+            this.emailService.sendUserActivationNotice(user.email, {
                 name: user.name,
             });
         } catch (emailError) {
@@ -238,9 +238,12 @@ export class UsersService {
     async banUser(userId: string, reason?: string, penaltyAmount?: number, violationType?: ViolationType) {
         const user = await this.getUser(userId);
         if (!user) throw new NotFoundException(`User with Id: ${userId} not found!`);
+
+        const bannedUntil = new Date();
+        bannedUntil.setDate(bannedUntil.getDate() + 7);
         await this.usersRepository.update(
             {id: userId},
-            {verificationStatus: UserVerificationStatus.BANNED},
+            {verificationStatus: UserVerificationStatus.BANNED, bannedUntil},
         );
 
         const violationData: Partial<Violation> = {
@@ -255,8 +258,7 @@ export class UsersService {
         await this.violationRepository.save(violation);
 
         try {
-            console.log('calling email service');
-            await this.emailService.sendUserBanEmail(user.email, {
+            this.emailService.sendUserBanEmail(user.email, {
                 reason: violationData.description,
                 penaltyAmount,
             });

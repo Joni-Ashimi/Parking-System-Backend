@@ -73,15 +73,17 @@ export class ParkingSessionService {
         }
 
         const user = await this.userRepo.findOne({where: {id: userId}});
-        if (!user) throw new NotFoundException('User not found')
+        if (!user) throw new NotFoundException('User not found');
 
-        if (user.verificationStatus != UserVerificationStatus.VERIFIED && user.bannedUntil && user.bannedUntil > new Date()) {
-            const now = new Date();
-            const msRemaining = user.bannedUntil.getTime() - now.getTime();
+        if (user.verificationStatus === UserVerificationStatus.BANNED && user.bannedUntil && user.bannedUntil > new Date()) {
+            const msRemaining = user.bannedUntil.getTime() - new Date().getTime();
             const daysRemaining = Math.ceil(msRemaining / (1000 * 60 * 60 * 24));
             throw new ForbiddenException(
                 `Your account is banned. You cannot reserve a parking spot for another ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}.`
             );
+        }
+        if (user.verificationStatus === UserVerificationStatus.PENDING) {
+            throw new ForbiddenException('Your account is not verified. Please verify your account before reserving a spot.');
         }
 
         const activeSession = await this.sessionRepo.findOne({
