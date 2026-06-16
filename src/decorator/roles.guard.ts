@@ -13,7 +13,6 @@ export class RolesGuard implements CanActivate {
             context.getClass(),
         ]);
 
-        // If no roles are specified, the route is public or just requires login
         if (!requiredRoles) {
             return true;
         }

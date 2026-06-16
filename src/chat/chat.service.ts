@@ -1,4 +1,4 @@
-    import {Injectable} from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Repository} from 'typeorm';
 import {User} from "../entity/User";
@@ -17,7 +17,7 @@ export class ChatService {
 
             const user = await this.userRepository.findOne({
                 where: {id: userId},
-                relations: ['vehicles'], // Pulls related vehicles array automatically
+                relations: ['vehicles'],
             });
 
             if (!user) return 'User account context was provided but not found in the database.';

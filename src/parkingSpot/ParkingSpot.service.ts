@@ -32,7 +32,6 @@ export class ParkingSpotService {
             throw new BadRequestException('Invalid spot number formatting sequence. Expected format like "A-01".');
         }
 
-        // 2. Count existing spots in this row for this specific lot using TypeORM Like
         const existingRowSpotsCount = await this.parkingSpotRepository.count({
             where: {
                 spotNumber: Like(`${targetRow}-%`),
@@ -48,7 +47,6 @@ export class ParkingSpotService {
             );
         }
 
-        // 3. Check for a duplicate spot number within the same lot
         const duplicateSpot = await this.parkingSpotRepository.findOne({
             where: {
                 spotNumber: cleanSpotNumber,
@@ -62,7 +60,6 @@ export class ParkingSpotService {
             );
         }
 
-        // 4. Fetch relational dependencies in parallel to minimize database roundtrips
         const [lot, spotCategory] = await Promise.all([
             this.parkingLotRepository.findOne({where: {id: dto.lotId}}),
             this.spotCategoryRepository.findOne({where: {id: dto.typeId}}),

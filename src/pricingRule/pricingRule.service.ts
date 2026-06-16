@@ -40,7 +40,7 @@ export class PricingRuleService {
                 title: rule.name,
                 description: formattedDescription,
                 discount: rule.adjustmentType === 'DISCOUNT' ? `${Number(rule.value)}%` : `+${Number(rule.value)}%`,
-                validUntil: 'Ongoing', // Can be mapped dynamically if expiration dates are added later
+                validUntil: 'Ongoing',
             };
         });
     }

@@ -24,10 +24,10 @@ export class SpotCategory {
     code: ParkingSpotTypeCode;
 
     @Column()
-    name: string; // Car, Truck, Bike
+    name: string;
 
     @Column()
-    size: string; // Small, Standard, Large
+    size: string;
 
     @Column('decimal')
     baseHourlyRate: number;
