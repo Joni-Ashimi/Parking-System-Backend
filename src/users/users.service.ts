@@ -241,31 +241,27 @@ export class UsersService {
 
         const bannedUntil = new Date();
         bannedUntil.setDate(bannedUntil.getDate() + 7);
+
         await this.usersRepository.update(
             {id: userId},
             {verificationStatus: UserVerificationStatus.BANNED, bannedUntil},
         );
 
-        const violationData: Partial<Violation> = {
+        const violation = this.violationRepository.create({
             user: {id: user.id} as any,
             type: violationType ?? ViolationType.OTHER,
             description: reason || 'User was banned by administrator',
             penaltyAmount,
             status: ViolationStatus.PENDING,
-        };
-
-        const violation = this.violationRepository.create(violationData);
+        });
         await this.violationRepository.save(violation);
 
-        try {
-            await this.emailService.sendUserBanEmail(user.email, {
-                reason: violationData.description,
-                penaltyAmount,
-            });
-        } catch (emailError) {
-            console.error(`Failed to send ban email to ${user.email}:`, emailError);
-        }
-
+        this.emailService.sendUserBanEmail(user.email, {
+            reason: violation.description,
+            penaltyAmount,
+        }).catch(err => {
+            console.error(`Background email failed for ${user.email}:`, err);
+        });
 
         return {message: `User ${user?.name} has been banned`};
     }

@@ -12,6 +12,9 @@ import {HandlebarsAdapter} from "@nestjs-modules/mailer/adapters/handlebars.adap
                     host: 'smtp.gmail.com',
                     port: 465,
                     secure: true,
+                    pool: true,
+                    maxConnections: 5,
+                    maxMessages: 100,
                     auth: {
                         user: process.env.TEST_EMAIL,
                         pass: process.env.TEST_EMAIL_PASSWORD,
