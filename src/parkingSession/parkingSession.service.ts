@@ -216,8 +216,18 @@ export class ParkingSessionService {
             .leftJoin("session.vehicle", "vehicle")
             .leftJoin("session.spot", "spot")
             .select([
-                "session.id", "session.entryTime", "session.status", "session.price",
-                "user.name", "vehicle.plateNumber", "spot.spotNumber"
+                "session.id",
+                "session.entryTime",
+                "session.createdAt",
+                "session.status",
+                "session.price",
+                "user.id",
+                "user.name",
+                "user.email",
+                "user.gender",
+                "user.profileImageUrl",
+                "vehicle.plateNumber",
+                "spot.spotNumber",
             ])
             .where("session.status = :status", {status: ParkingSessionStatus.ACTIVE})
 

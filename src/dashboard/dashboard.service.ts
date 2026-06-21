@@ -5,6 +5,7 @@ import {ParkingSessionStatus} from '../def/enums/ParkingSessionStatus';
 import {ParkingSession} from "../entity/ParkingSession";
 import {User} from "../entity/User";
 import {ParkingSpot} from "../entity/ParkingSpot";
+import {ParkingSpotStatus} from "../def/enums/ParkingSpotStatus";
 
 @Injectable()
 export class DashboardService {
@@ -20,21 +21,36 @@ export class DashboardService {
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date();
         endOfDay.setHours(23, 59, 59, 999);
+
         const totalUsers = await this.userRepo.count();
-        const activeSessions = await this.sessionRepo.count({where: {status: ParkingSessionStatus.ACTIVE}});
+
+        const activeSessions = await this.sessionRepo.count({
+            where: {status: ParkingSessionStatus.ACTIVE}
+        });
+
         const totalSpots = await this.spotRepo.count();
+
+        const availableSpots = await this.spotRepo.count({
+            where: {status: ParkingSpotStatus.AVAILABLE}
+        });
+
+        const occupiedSpots = await this.spotRepo.count({
+            where: {status: ParkingSpotStatus.OCCUPIED}
+        });
+
         const revenue = await this.sessionRepo.createQueryBuilder('s')
             .select('SUM(s.price)', 'total')
-            .where('s.status = :status', { status: 'completed' })
-            .andWhere('s.entryTime BETWEEN :start AND :end', { start: startOfDay, end: endOfDay })
+            .where('s.status = :status', {status: ParkingSessionStatus.COMPLETED})
+            .andWhere('s.exitTime BETWEEN :start AND :end', {start: startOfDay, end: endOfDay})
             .getRawOne();
 
         return {
             totalUsers,
             activeSessions,
-            activeSpots: activeSessions,
             totalSpots,
-            totalRevenue: parseFloat(revenue.total || 0),
+            availableSpots,
+            occupiedSpots,
+            totalRevenue: parseFloat(revenue?.total ?? 0),
         };
     }
 
@@ -80,11 +96,17 @@ export class DashboardService {
 
     async getOccupancyTrend() {
         return await this.sessionRepo.createQueryBuilder('s')
-            .select("TO_CHAR(s.entryTime, 'Mon DD')", "date")
-            .addSelect("AVG(100.0 * (SELECT COUNT(*) FROM parking_session WHERE status = 'active') / (SELECT COUNT(*) FROM parking_spot))", "rate")
+            .select("TO_CHAR(DATE(s.entryTime), 'Mon DD')", "date")
+            .addSelect(`
+            ROUND(
+                100.0 * COUNT(CASE WHEN s.status = 'active' THEN 1 END) 
+                / NULLIF((SELECT COUNT(*) FROM parking_spot), 0),
+                1
+            )
+        `, "rate")
             .where("s.entryTime >= CURRENT_DATE - INTERVAL '7 days'")
-            .groupBy("date")
-            .orderBy("MIN(s.entryTime)", "ASC")
+            .groupBy("DATE(s.entryTime)")
+            .orderBy("DATE(s.entryTime)", "ASC")
             .getRawMany();
     }
 }
