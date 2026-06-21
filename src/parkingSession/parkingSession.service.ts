@@ -94,6 +94,7 @@ export class ParkingSessionService {
         }
 
         await this.spotRepo.update(spotId, {status: ParkingSpotStatus.OCCUPIED, updatedAt: new Date()});
+        console.log('spot after session: ', spot);
         const session = this.sessionRepo.create({
             spot: {id: spotId},
             user: {id: userId},

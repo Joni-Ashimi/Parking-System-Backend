@@ -123,9 +123,10 @@ export class UsersService {
         const queryBuilder = this.usersRepository.createQueryBuilder('user');
 
         if (qs) {
-            queryBuilder.where('user.name ILike :qs ' +
-                'OR user.email ILike :qs' +
-                'OR user.phoneNumber ILike :qs', {qs: `%${qs}%`});
+            queryBuilder.andWhere(
+                '(user.name ILike :qs OR user.email ILike :qs OR user.phoneNumber ILike :qs)',
+                { qs: `%${qs}%` }
+            );
         }
         if (sortBy) {
             const normalizedOrder = (sortOrder?.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';

@@ -92,7 +92,6 @@ export class ParkingSpotService {
             .createQueryBuilder('spot')
             .leftJoinAndSelect('spot.lot', 'lot')
             .leftJoinAndSelect('spot.type', 'type')
-            // CRITICAL: We must load the rules relation associated with the spot type
             .leftJoinAndSelect('type.rules', 'rules');
 
         if (lotId) {
@@ -109,19 +108,16 @@ export class ParkingSpotService {
 
         const [data, total] = await query.getManyAndCount();
 
-        // Get current time parameters for calculation matching
         const now = new Date();
-        const currentDay = now.getDay();    // 0 = Sunday
-        const currentHour = now.getHours();  // 19
+        const currentDay = now.getDay();
+        const currentHour = now.getHours();
 
-        // Process each spot to dynamically inject current pricing states
         const processedData = data.map((spot) => {
             if (!spot.type) return spot;
 
             const baseHourly = Number(spot.type.baseHourlyRate);
             const baseDaily = Number(spot.type.baseDailyRate);
 
-            // Find if a rule applies to this vehicle category right now
             const activeRule = spot.type.rules?.find((rule) => {
                 const ruleDay = rule.dayOfWeek !== null ? Number(rule.dayOfWeek) : null;
                 const ruleStart = rule.startHour !== null ? Number(rule.startHour) : null;
@@ -129,7 +125,6 @@ export class ParkingSpotService {
 
                 const matchesDay = ruleDay === null || ruleDay === currentDay;
 
-                // Standard time window check logic
                 const matchesHour =
                     ruleStart === null || ruleEnd === null ||
                     (currentHour >= ruleStart && currentHour < ruleEnd);
@@ -145,7 +140,6 @@ export class ParkingSpotService {
                     : baseHourly * (1 + ruleValue / 100);
             }
 
-            // Return updated object layout with correct properties
             return {
                 ...spot,
                 type: {
@@ -172,7 +166,7 @@ export class ParkingSpotService {
 
     async findAllForMap() {
         const spots = await this.dataSource.getRepository(ParkingSpot).find({
-            relations: ['type', 'type.rules', 'lot'],  // ← the line you asked about
+            relations: ['type', 'type.rules', 'lot'],
             order: {floor: 'ASC', spotNumber: 'ASC'},
         });
 
