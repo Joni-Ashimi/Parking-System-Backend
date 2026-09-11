@@ -1,15 +1,19 @@
 import {
   Entity,
   PrimaryGeneratedColumn,
-  Column, ManyToOne, OneToOne, CreateDateColumn, DeleteDateColumn
+  Column,
+  ManyToOne,
+  OneToOne,
+  CreateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
-import {Vehicle} from "./Vehicle";
-import {ParkingSpot} from "./ParkingSpot";
-import {ParkingSessionStatus} from "../def/enums/ParkingSessionStatus";
-import {Transaction} from "./Transaction";
-import {User} from "./User";
+import { Vehicle } from './Vehicle';
+import { ParkingSpot } from './ParkingSpot';
+import { ParkingSessionStatus } from '../def/enums/ParkingSessionStatus';
+import { Transaction } from './Transaction';
+import { User } from './User';
 
-@Entity()
+@Entity('parkinsSessions')
 export class ParkingSession {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -28,7 +32,7 @@ export class ParkingSession {
 
   @Column({
     type: 'enum',
-      enum: ParkingSessionStatus,
+    enum: ParkingSessionStatus,
     default: ParkingSessionStatus.ACTIVE,
   })
   status: ParkingSessionStatus;

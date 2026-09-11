@@ -1,41 +1,41 @@
 import {
-    Column,
-    CreateDateColumn,
-    DeleteDateColumn,
-    Entity,
-    ManyToOne,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import {User} from "./User";
-import {VehicleType} from "./../def/enums/VehicleType";
+import { User } from './User';
+import { VehicleType } from './../def/enums/VehicleType';
 
-@Entity()
+@Entity('vehicles')
 export class Vehicle {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({unique: true})
-    plateNumber: string;
+  @Column({ unique: true })
+  plateNumber: string;
 
-    @Column({
-        type: 'enum',
-        enum: VehicleType,
-    })
-    type: VehicleType;
+  @Column({
+    type: 'enum',
+    enum: VehicleType,
+  })
+  type: VehicleType;
 
-    @Column({default: true})
-    isDefault: boolean;
+  @Column({ default: true })
+  isDefault: boolean;
 
-    @ManyToOne(() => User, (user) => user.vehicles)//many vehicle by one user
-    user: User;
+  @ManyToOne(() => User, (user) => user.vehicles) //many vehicle by one user
+  user: User;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-    @DeleteDateColumn()
-    deletedAt?: Date;
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }

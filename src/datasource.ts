@@ -1,27 +1,47 @@
 import { DataSource, DefaultNamingStrategy } from 'typeorm';
 import * as dotenv from 'dotenv';
-import {Transaction} from "./entity/Transaction";
-import {ParkingLot} from "./entity/ParkingLot";
-import {ParkingSession} from "./entity/ParkingSession";
-import {ParkingSpot} from "./entity/ParkingSpot";
-import {User} from "./entity/User";
-import {Vehicle} from "./entity/Vehicle";
-import {Notification} from "./entity/Notification";
-import {PasswordReset} from "./entity/PasswordReset";
-import {SpotCategory} from "./entity/SpotCategory";
-import {PricingRule} from "./entity/PricingRule";
-import {Feedback} from "./entity/Feedback";
+import { Transaction } from './entity/Transaction';
+import { ParkingLot } from './entity/ParkingLot';
+import { ParkingSession } from './entity/ParkingSession';
+import { ParkingSpot } from './entity/ParkingSpot';
+import { User } from './entity/User';
+import { Vehicle } from './entity/Vehicle';
+import { Notification } from './entity/Notification';
+import { PasswordReset } from './entity/PasswordReset';
+import { SpotCategory } from './entity/SpotCategory';
+import { PricingRule } from './entity/PricingRule';
+import { Feedback } from './entity/Feedback';
+import { ChatMessage } from './entity/ChatMessage';
+import { Conversation } from './entity/Conversation';
+import { Card } from './entity/Card';
+import { Violation } from './entity/Violation';
 dotenv.config();
 
 export const AppDataSource = new DataSource({
-    type: 'postgres',
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT),
-    username: process.env.DB_USERNAME,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    entities: [Notification, Transaction, ParkingLot, ParkingSession, ParkingSpot, SpotCategory, PricingRule, User, Vehicle, PasswordReset, Feedback],
-    migrations: ['src/migrations/*.ts'],
-    synchronize: true,
-    namingStrategy: new DefaultNamingStrategy(),
+  type: 'postgres',
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  entities: [
+    Notification,
+    Transaction,
+    ParkingLot,
+    ParkingSession,
+    ParkingSpot,
+    SpotCategory,
+    PricingRule,
+    User,
+    Vehicle,
+    PasswordReset,
+    Feedback,
+    ChatMessage,
+    Conversation,
+    Card,
+    Violation
+  ],
+  migrations: ['src/migrations/*.ts'],
+  synchronize: true,
+  namingStrategy: new DefaultNamingStrategy(),
 });

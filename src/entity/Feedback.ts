@@ -1,32 +1,39 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, DeleteDateColumn } from 'typeorm';
-import { User } from '../entity/User';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
+import { User } from './User';
 
-@Entity()
+@Entity('feedbacks')
 export class Feedback {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column()
-    subject: string;
+  @Column()
+  subject: string;
 
-    @Column()
-    category: string;
+  @Column()
+  category: string;
 
-    @Column('text')
-    message: string;
+  @Column('text')
+  message: string;
 
-    @Column('simple-array', { nullable: true })
-    photos: string[];
+  @Column('simple-array', { nullable: true })
+  photos: string[];
 
-    @Column({ default: 'pending' })
-    status: string;
+  @Column({ default: 'pending' })
+  status: string;
 
-    @ManyToOne(() => User, { eager: true })
-    user: User;
+  @ManyToOne(() => User, { eager: true })
+  user: User;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
-    deletedAt: Date;
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date;
 }

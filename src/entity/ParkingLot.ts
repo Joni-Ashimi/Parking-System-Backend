@@ -1,35 +1,37 @@
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    DeleteDateColumn, OneToMany, UpdateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  OneToMany,
+  UpdateDateColumn,
 } from 'typeorm';
-import {ParkingSpot} from "./ParkingSpot";
+import { ParkingSpot } from './ParkingSpot';
 
 @Entity('parkingLot')
 export class ParkingLot {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column()
-    name: string;
+  @Column()
+  name: string;
 
-    @Column()
-    location: string;
+  @Column()
+  location: string;
 
-    @Column()
-    capacity: number;
+  @Column()
+  capacity: number;
 
-    @OneToMany(() => ParkingSpot, (spot) => spot.lot)
-    spots: ParkingSpot[];
+  @OneToMany(() => ParkingSpot, (spot) => spot.lot)
+  spots: ParkingSpot[];
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-    @DeleteDateColumn()
-    deletedAt?: Date;
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }
